@@ -1,0 +1,141 @@
+[debug] > Exec(early(addDefaultCommands), None, None)
+[debug] > Exec(addDefaultCommands, None, None)
+[debug] > Exec(early(initialize), None, None)
+[debug] > Exec(initialize, None, None)
+[debug] > Exec(early(addPluginSbtFile="""C:\Users\mmateoga\AppData\Local\Temp\idea7.sbt"""), None, None)
+[debug] > Exec(addPluginSbtFile="""C:\Users\mmateoga\AppData\Local\Temp\idea7.sbt""", None, None)
+[debug] > Exec(boot, None, None)
+[debug] > Exec(writeSbtVersion, None, None)
+[debug] > Exec(reload, None, None)
+[debug] > Exec(sbtStashOnFailure, None, None)
+[debug] > Exec(onFailure loadFailed, None, None)
+[debug] > Exec(loadp, None, None)
+[info] welcome to sbt 1.6.2 (Amazon.com Inc. Java 1.8.0_332)
+[debug]       Load.loadUnit: plugins took 87.0604ms
+[debug]       Load.loadUnit: defsScala took 0.4562ms
+[debug] [Loading] Scanning directory C:\Users\mmateoga\.sbt\1.0\plugins
+[debug] [Loading] Found non-root projects 
+[debug] [Loading] Done in C:\Users\mmateoga\.sbt\1.0\plugins, returning: ()
+[debug] deducing auto plugins based on known facts Set(Atom(sbt.plugins.CorePlugin)) and clauses Clauses(Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.IvyPlugin)))
+[debug] Clause(Atom(sbt.ScriptedPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.SbtPlugin),Set(Atom(sbt.ScriptedPlugin)))
+[debug] Clause(Atom(sbt.plugins.SemanticdbPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.JUnitXmlReportPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.MiniDependencyTreePlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.CorePlugin),Set(Atom(sbt.plugins.IvyPlugin)))
+[debug] Clause(Atom(sbt.plugins.IvyPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.SemanticdbPlugin)))
+[debug] Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.JUnitXmlReportPlugin)))
+[debug] Clause(Atom(sbt.plugins.CorePlugin),Set(Atom(sbt.plugins.Giter8TemplatePlugin)))
+[debug] Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.MiniDependencyTreePlugin))))
+[debug]   :: deduced result: Matched(sbt.plugins.CorePlugin,sbt.plugins.Giter8TemplatePlugin,sbt.plugins.IvyPlugin,sbt.plugins.JvmPlugin,sbt.plugins.MiniDependencyTreePlugin,sbt.plugins.JUnitXmlReportPlugin,sbt.plugins.SemanticdbPlugin)
+[debug] Plugins.deducer#function took 14.1475 ms
+[debug]           Load.resolveProject(global-plugins) took 43.674ms
+[debug]         Load.loadTransitive: finalizeProject(Project(id global-plugins, base: C:\Users\mmateoga\.sbt\1.0\plugins, plugins: List(<none>))) took 83.3932ms
+[debug] [Loading] Done in C:\Users\mmateoga\.sbt\1.0\plugins, returning: (global-plugins)
+[debug]       Load.loadUnit: loadedProjectsRaw took 105.9116ms
+[debug]       Load.loadUnit: cleanEvalClasses took 0.3307ms
+[debug]     Load.loadUnit(file:/C:/Users/mmateoga/.sbt/1.0/plugins/, ...) took 203.7909ms
+[debug]   Load.apply: load took 373.2879ms
+[debug]   Load.apply: resolveProjects took 5.0607ms
+[debug]   Load.apply: finalTransforms took 60.7822ms
+[debug]   Load.apply: config.delegates took 8.2169ms
+[debug]   Load.apply: Def.make(settings)... took 288.0891ms
+[debug]   Load.apply: structureIndex took 81.7001ms
+[debug]   Load.apply: mkStreams took 1.8157ms
+[info] loading global plugins from C:\Users\mmateoga\.sbt\1.0\plugins
+[debug] Running task... Cancel: Signal, check cycles: false, forcegc: true
+[debug] Load.defaultLoad until apply took 2101.8894ms
+[debug]           Load.loadUnit: plugins took 19.9792ms
+[debug]           Load.loadUnit: defsScala took 0.0064ms
+[debug] [Loading] Scanning directory C:\Users\mmateoga\Downloads\TransformationCursors (2)\TransformationCursors\project
+[debug]             Load.loadUnit: mkEval took 6.3219ms
+[debug] [Loading] Found non-root projects 
+[debug] [Loading] Done in C:\Users\mmateoga\Downloads\TransformationCursors (2)\TransformationCursors\project, returning: ()
+[debug] deducing auto plugins based on known facts Set(Atom(sbt.plugins.CorePlugin)) and clauses Clauses(Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.IvyPlugin)))
+[debug] Clause(Atom(sbt.ScriptedPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.SbtPlugin),Set(Atom(sbt.ScriptedPlugin)))
+[debug] Clause(Atom(sbt.plugins.SemanticdbPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.JUnitXmlReportPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.MiniDependencyTreePlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.CorePlugin),Set(Atom(sbt.plugins.IvyPlugin)))
+[debug] Clause(Atom(sbt.plugins.IvyPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.SemanticdbPlugin)))
+[debug] Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.JUnitXmlReportPlugin)))
+[debug] Clause(Atom(sbt.plugins.CorePlugin),Set(Atom(sbt.plugins.Giter8TemplatePlugin)))
+[debug] Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.MiniDependencyTreePlugin))))
+[debug]   :: deduced result: Matched(sbt.plugins.CorePlugin,sbt.plugins.Giter8TemplatePlugin,sbt.plugins.IvyPlugin,sbt.plugins.JvmPlugin,sbt.plugins.MiniDependencyTreePlugin,sbt.plugins.JUnitXmlReportPlugin,sbt.plugins.SemanticdbPlugin)
+[debug] Plugins.deducer#function took 1.604 ms
+[info] loading settings for project transformationcursors-build from idea7.sbt ...
+[debug]               Load.resolveProject(transformationcursors-build) took 11.8879ms
+[debug]             Load.loadTransitive: finalizeProject(Project(id transformationcursors-build, base: C:\Users\mmateoga\Downloads\TransformationCursors (2)\TransformationCursors\project, plugins: List(<none>))) took 14.1798ms
+[debug] [Loading] Done in C:\Users\mmateoga\Downloads\TransformationCursors (2)\TransformationCursors\project, returning: (transformationcursors-build)
+[debug]           Load.loadUnit: loadedProjectsRaw took 156.6253ms
+[debug]           Load.loadUnit: cleanEvalClasses took 5.6619ms
+[debug]         Load.loadUnit(file:/C:/Users/mmateoga/Downloads/TransformationCursors%20(2)/TransformationCursors/project/, ...) took 183.6274ms
+[debug]       Load.apply: load took 185.5289ms
+[debug]       Load.apply: resolveProjects took 0.1495ms
+[debug]       Load.apply: finalTransforms took 8.4996ms
+[debug]       Load.apply: config.delegates took 0.4086ms
+[debug]       Load.apply: Def.make(settings)... took 103.1931ms
+[debug]       Load.apply: structureIndex took 22.968ms
+[debug]       Load.apply: mkStreams took 0.0049ms
+[info] loading project definition from C:\Users\mmateoga\Downloads\TransformationCursors (2)\TransformationCursors\project
+[debug] Running task... Cancel: Signal, check cycles: false, forcegc: true
+[debug]     Load.loadUnit: plugins took 657.2917ms
+[debug]     Load.loadUnit: defsScala took 0.004ms
+[debug] [Loading] Scanning directory C:\Users\mmateoga\Downloads\TransformationCursors (2)\TransformationCursors
+[debug]       Load.loadUnit: mkEval took 0.3442ms
+[debug] [Loading] Found root project root w/ remaining 
+[debug] deducing auto plugins based on known facts Set(Atom(sbt.plugins.CorePlugin)) and clauses Clauses(Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.IvyPlugin)))
+[debug] Clause(Atom(sbt.ScriptedPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.SbtPlugin),Set(Atom(sbt.ScriptedPlugin)))
+[debug] Clause(Atom(sbt.plugins.SemanticdbPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.JUnitXmlReportPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.MiniDependencyTreePlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(org.jetbrains.sbt.StructurePlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(org.jetbrains.sbt.IdeaShellPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(org.jetbrains.sbt.indices.SbtIntellijIndicesPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.CorePlugin),Set(Atom(sbt.plugins.IvyPlugin)))
+[debug] Clause(Atom(sbt.plugins.IvyPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.SemanticdbPlugin)))
+[debug] Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.JUnitXmlReportPlugin)))
+[debug] Clause(Atom(sbt.plugins.CorePlugin),Set(Atom(sbt.plugins.Giter8TemplatePlugin)))
+[debug] Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.MiniDependencyTreePlugin)))
+[debug] Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(org.jetbrains.sbt.StructurePlugin)))
+[debug] Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(org.jetbrains.sbt.IdeaShellPlugin)))
+[debug] Clause(And(Set(Atom(sbt.plugins.CorePlugin), Atom(sbt.plugins.JvmPlugin))),Set(Atom(org.jetbrains.sbt.indices.SbtIntellijIndicesPlugin))))
+[debug]   :: deduced result: Matched(sbt.plugins.CorePlugin,sbt.plugins.Giter8TemplatePlugin,sbt.plugins.IvyPlugin,sbt.plugins.JvmPlugin,sbt.plugins.SemanticdbPlugin,org.jetbrains.sbt.indices.SbtIntellijIndicesPlugin,sbt.plugins.JUnitXmlReportPlugin,org.jetbrains.sbt.IdeaShellPlugin,org.jetbrains.sbt.StructurePlugin,sbt.plugins.MiniDependencyTreePlugin)
+[debug] Plugins.deducer#function took 2.3059 ms
+[info] loading settings for project root from build.sbt ...
+[debug]         Load.resolveProject(root) took 30.246ms
+[debug]       Load.loadTransitive: finalizeProject(Project(id root, base: C:\Users\mmateoga\Downloads\TransformationCursors (2)\TransformationCursors, plugins: List(<none>))) took 34.4221ms
+[debug] [Loading] Done in C:\Users\mmateoga\Downloads\TransformationCursors (2)\TransformationCursors, returning: (root)
+[debug]     Load.loadUnit: loadedProjectsRaw took 124.7685ms
+[debug]     Load.loadUnit: cleanEvalClasses took 3.8411ms
+[debug]   Load.loadUnit(file:/C:/Users/mmateoga/Downloads/TransformationCursors%20(2)/TransformationCursors/, ...) took 786.7074ms
+[debug] Load.apply: load took 788.7405ms
+[debug] Load.apply: resolveProjects took 0.1674ms
+[debug] Load.apply: finalTransforms took 20.2964ms
+[debug] Load.apply: config.delegates took 0.3745ms
+[debug] Load.apply: Def.make(settings)... took 106.9333ms
+[debug] Load.apply: structureIndex took 20.6531ms
+[debug] Load.apply: mkStreams took 0.0052ms
+[info] set current project to Tables (in build file:/C:/Users/mmateoga/Downloads/TransformationCursors%20(2)/TransformationCursors/)
+[debug] > Exec(sbtPopOnFailure, None, None)
+[debug] > Exec(resumeFromFailure, None, None)
+[debug] > Exec(notifyUsersAboutShell, None, None)
+[debug] > Exec(iflast shell, None, None)
+[debug] > Exec(; set ideaPort in Global := 53718 ; idea-shell, None, None)
+[debug] > Exec(set ideaPort in Global := 53718, None, None)
+[info] Defining Global / ideaPort
+[info] The new value will be used by Compile / compile, Test / compile
+[debug] Defining 
+[debug] 	Global / ideaPort
+[debug] 
+[debug] The new value will be used by 
+[debug] 	Compile / compile
+[debug] 	Test / compile
+[info] Reapplying settings...
+[info] set current project to Tables (in build file:/C:/Users/mmateoga/Downloads/TransformationCursors%20(2)/TransformationCursors/)
+[debug] > Exec(idea-shell, None, None)

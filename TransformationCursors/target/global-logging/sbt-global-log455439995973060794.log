@@ -1,0 +1,11 @@
+[debug] > Exec(test, None, None)
+[debug] Evaluating tasks: Test / test
+[debug] Running task... Cancel: Signal, check cycles: false, forcegc: true
+[info] compiling 4 Scala sources to C:\Users\mmateoga\Downloads\TransformationCursors (2)\TransformationCursors\target\scala-2.12\classes ...
+[info] Non-compiled module 'compiler-bridge_2.12' for Scala 2.12.14. Compiling...
+[info]   Compilation completed in 9.43s.
+[info] done compiling
+[info] compiling 1 Scala source to C:\Users\mmateoga\Downloads\TransformationCursors (2)\TransformationCursors\target\scala-2.12\test-classes ...
+[info] done compiling
+[success] Total time: 13 s, completed 18-jul-2022 14:10:25
+[debug] > Exec(idea-shell, None, None)
