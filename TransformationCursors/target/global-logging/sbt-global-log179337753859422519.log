@@ -1,4 +1,0 @@
-[debug] > Exec(console, None, None)
-[debug] Evaluating tasks: Compile / console
-[debug] Running task... Cancel: Signal, check cycles: false, forcegc: true
-[info] Starting scala interpreter...
