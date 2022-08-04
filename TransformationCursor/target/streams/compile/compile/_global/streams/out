@@ -1,0 +1,9 @@
+[debug] Acquiring lock on file C:\Users\rivalenc\Downloads\project\retoCap\TransformationCursor\project\target\.sbt-compilation-infos\root-compile\.sbt-idea-lock ...
+[error] C:\Users\rivalenc\Downloads\project\retoCap\TransformationCursor\src\main\scala\Recogida\Common\TransformacionesLocal.scala:53:7: ')' expected but '.' found.
+[error]     TF.join(R,TF("ELMUN_ID") === R("ELMUN_ID"), "right")
+[error]       ^
+[error] C:\Users\rivalenc\Downloads\project\retoCap\TransformationCursor\src\main\scala\Recogida\Common\TransformacionesLocal.scala:54:6: ';' expected but '.' found.
+[error]     F.join(U,F("UGACT_ID")) === U("UGACT_ID"), "left")
+[error]      ^
+[error] two errors found
+[debug] Releasing lock on file C:\Users\rivalenc\Downloads\project\retoCap\TransformationCursor\project\target\.sbt-compilation-infos\root-compile\.sbt-idea-lock.

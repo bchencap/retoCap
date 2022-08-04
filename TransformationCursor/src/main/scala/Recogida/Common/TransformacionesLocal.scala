@@ -49,6 +49,17 @@ object TransformacionesLocal extends Common {
   )
   def RecogidaInicial(date: String): Unit = {
     print(dataframes.apply("C").take(10).apply(0).toString())
+   val TF =  dataframes("TLP").filter((dataframes("TPL")("DESDE_DT").between("2017-07-01","2017-07-31")) || (dataframes("TPL")("DESDE_DT").lt(lit ("2017-07-01")) && (dataframes("TPL")("HASTA_DT").gt(lit("2017-07-01")) || (dataframes("TPL")("HASTA_DT").isNull)))).join(dataframes("R"),col("ELMUN_ID") === dataframes("R")("ELMUN_ID"), "right")
+   val UFjoin =  dataframes("F").join(dataframes("U"),dataframes("F")("UGACT_ID") === dataframes("U")("UGACT_ID"), "left")
+     .join(dataframes("E"),dataframes("F")("DESDE_DT") <=  dataframes("E")("HASTA_DT") && (dataframes("F")("HASTA_DT"), dataframes("E")("DESDE_DT").isNull >= dataframes("E")("DESDE_DT")))
+     .join(dataframes("DWE_SGE_SAP_PROVEEDORES"),dataframes("F")("UNFAC_ID") === dataframes("DWE_SGE_SAP_PROVEEDORES")("PROVE_ID"), "right" )
+
+    //
+    //dataframes("F").join(dataframes("E"),dataframes("F")("DESDE_DT") <=  dataframes("E")("HASTA_DT") && (dataframes("F")("HASTA_DT"), dataframes("E")("DESDE_DT").isNull >= dataframes("E")("DESDE_DT")))
+    // V2 = DWE_SGE_SAP_PROVEEDORES
+    //dataframes("F").join(dataframes("DWE_SGE_SAP_PROVEEDORES"),dataframes("F")("UNFAC_ID") === dataframes("DWE_SGE_SAP_PROVEEDORES")("PROVE_ID"), "right" )
+
+
   }
 
 

@@ -1,0 +1,17 @@
+[debug] > Exec(compile, None, None)
+[debug] Evaluating tasks: Compile / compile
+[debug] Running task... Cancel: Signal, check cycles: false, forcegc: true
+[info] compiling 4 Scala sources to C:\Users\rivalenc\Downloads\project\retoCap\TransformationCursor\target\scala-2.12\classes ...
+[info] Non-compiled module 'compiler-bridge_2.12' for Scala 2.12.14. Compiling...
+[info]   Compilation completed in 13.954s.
+[error] C:\Users\rivalenc\Downloads\project\retoCap\TransformationCursor\src\main\scala\Recogida\Common\TransformacionesLocal.scala:53:7: ')' expected but '.' found.
+[error]     TF.join(R,TF("ELMUN_ID") === R("ELMUN_ID"), "right")
+[error]       ^
+[error] C:\Users\rivalenc\Downloads\project\retoCap\TransformationCursor\src\main\scala\Recogida\Common\TransformacionesLocal.scala:54:6: ';' expected but '.' found.
+[error]     F.join(U,F("UGACT_ID")) === U("UGACT_ID"), "left")
+[error]      ^
+[error] two errors found
+[debug] Forcing garbage collection...
+[error] (Compile / compileIncremental) Compilation failed
+[error] Total time: 18 s, completed 04-ago-2022 12:24:56
+[debug] > Exec(idea-shell, None, None)
