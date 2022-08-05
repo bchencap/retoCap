@@ -1,8 +1,9 @@
 package Recogida.Common
 
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.functions.{col, lit, to_timestamp}
+import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.catalyst.dsl.expressions.StringToAttributeConversionHelper
+import org.apache.spark.sql.functions.{coalesce, col, lit, to_timestamp}
 import org.apache.spark.storage.StorageLevel
 
 import java.sql.Timestamp
@@ -47,9 +48,15 @@ object TransformacionesLocal extends Common {
     //DWE_VM_VOLUMENS NO SE USA
     "VOL"->spark.read.option("header","true").csv("./DWE_VM_VOLUMENS_20220714_125755.csv.bz2"),
   )
+
   def RecogidaInicial(date: String): Unit = {
-    print(dataframes.apply("C").take(10).apply(0).toString())
-  }
+    def OPtable():DataFrame={
+      dataframes("DWE_SGR_MU_ASIG_OPERADORES_UTE").alias("OU").join(dataframes("DWE_SGR_MU_ASIG_OPERADORES_UF").alias("OP"),col("OU.UTE_ID")===col("OP.UTE_ID"),"left")
+      .selectExpr("(1 * coalesce(OP.PORCENTAJE_QT, 100) / 100) * coalesce(OU.PORCENTAJE_QT, 100) / 100 AS POBDC_QT"," OP.OPERADOR_ID as OPERADOR_ID_OP","OU.OPERADOR_ID as OPERADOR_ID_OU","COALESCE(OP.OPERADOR_ID, OU.OPERADOR_ID, 0) AS OPERADOR_ID"," CASE WHEN OP.OPERADOR_ID IS NOT NULL THEN OP.PORCENTAJE_QT ELSE OU.PORCENTAJE_QT END as PORCENTAJE_QT","coalesce(OP.UTE_ID,0) AS UTE_ID"," CASE WHEN OP.UTE_ID IS NOT NULL THEN OP.PORCENTAJE_QT ELSE NULL END AS PORCENTAJE_UTE_QT","OP.DESDE_DT","OP.HASTA_DT","OP.UFUGA_ID","OP.MEDIOSPP_SN").as("OP").join(dataframes("F").as("UF2"),col("UF2.UFUGA_ID")===col("OP.UFUGA_ID"),"right")
+
+    }
+    OPtable().show(10)
+}
 
 
 

@@ -11,20 +11,15 @@ object Main {
     val local= currentDirectory.startsWith("C:")
     //Source.fromFile("main.scala").
     var date="";
-    var argumentFound = false;
-    for(arg<-args)
-    {
-      if(argumentFound){
-        date=arg;
-        argumentFound=false;
+    for(i <- 0 until args.length by 2){
+      if(args.apply(i)=="-d") {
+        date=args.apply(i+1)
       }
-
-      if(arg=="-d") {
-        argumentFound=true;
-      }
-
     }
-
+    if(date==""){
+      println("Falta poner el parámetro de fecha que sigue de la siguiente forma : -d 2017-07-01")
+      return;
+    }
     if (local==false){
       println("server")
       //llamar a función dentro de Scala (databricks)
