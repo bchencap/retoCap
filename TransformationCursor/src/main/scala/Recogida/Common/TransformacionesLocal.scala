@@ -74,7 +74,7 @@ object TransformacionesLocal extends Common {
       .join(dataframes("V2"),dataframes("F")("UNFAC_ID") === dataframes("V2")("PROVE_ID"), "right" )
 
 
-    //Filtros
+    //Inner-join
 
     val innerjoin = dataframes("U").join(dataframes("G"),dataframes("U")("UAACT_ID") === dataframes("G")("UAACT_ID"), "inner")
     val innerGM =   innerjoin.join(dataframes("M"),dataframes("G")("UGACT_ID") === dataframes("M")("UGACT_ID"), "inner")
@@ -93,14 +93,44 @@ object TransformacionesLocal extends Common {
     val joinV2V = dataframes("V2").join(dataframes("V"),dataframes("V2")("PROVE_ID") === dataframes("V")("PROVE_ID"), "inner")
     val joinUF2P = dataframes("F").join(dataframes("P"),dataframes("F")("UFUGA_ID") === dataframes("P")("UFUGA_ID"), "inner")
     val joinUF =  dataframes("F").as("UF2").join(dataframes("F").as("UF"),col("UF.UGACT_ID") === col("UF2.UGACT_ID"))
-    joinUF.show(5)
+    //joinUF.show(5)
 
 
-  }
+    //Filtros
+    val filtG= dataframes("G").filter((dataframes("G")("DESDE_DT").gt(lit("2017-07-01"))
+      && (dataframes("G")("DESDE_DT").lt(lit("2017-07-31"))))
+      || (dataframes("G")("DESDE_DT").lt(lit("2017-07-01"))
+      && (dataframes("G")("HASTA_DT").gt(lit("2017-07-01"))|| dataframes("G")("HASTA_DT").isNull)))
 
 
+    val filtMjul01_31= dataframes("M")filter((dataframes("M")("DESDE_DT").gt(lit("2017-07-01"))
+      && (dataframes("M")("DESDE_DT").lt(lit("2017-07-31"))))
+      || (dataframes("M")("DESDE_DT").lt(lit("2017-07-01"))
+      && (dataframes("M")("HASTA_DT").gt(lit("2017-07-01"))
+      || dataframes("M")("HASTA_DT").isNull)))
 
-  def CargaMedios(): Unit = {
+
+    val TfiltJUL01_31= dataframes("T").filter((dataframes("T")("DESDE_DT").gt(lit("2017-07-01"))
+      && (dataframes("T")("DESDE_DT").lt(lit("2017-07-31"))))
+      || (dataframes("T")("DESDE_DT").lt(lit("2017-07-01"))
+      && (dataframes("T")("HASTA_DT").gt(lit("2017-07-01"))|| dataframes("T")("HASTA_DT").isNull)))
+
+    val filtR = dataframes("R").filter((dataframes("R")("DESDE_DT").gt(lit("2017-07-01"))
+      && (dataframes("R")("DESDE_DT").lt(lit("2017-07-31")))
+      || (dataframes("R")("DESDE_DT").lt(lit("2017-07-01")))
+      && (dataframes("R")("HASTA_DT").gt(lit("2017-07-01")))
+      || dataframes("R")("HASTA_DT").isNull))
+
+    //Error por que no se he hecho join aún
+    val filtT = dataframes("T").as("T2").filter(col("T2.DESDE_DT").lt(dataframes("E").as("E2")("E2.DESDE_DT"))
+      && (col("T2.HASTA_DT").gt(dataframes("E").as("E2")("E2.HASTA_DT")))
+      || col("T2.HASTA_DT").isNull)
+
+    val filtS = dataframes("S").filter((dataframes("S")("DESDE_DT").lt(dataframes("E")("DESDE_DT"))
+      && (dataframes("S")("HASTA_DT").gt(dataframes("E")("HASTA_DT")))
+      || dataframes("S")("HASTA_DT").isNull))
+
+    filtT.show(5)
   }
 
   def CargaKilos():Unit={}
