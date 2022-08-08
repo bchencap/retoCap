@@ -1,15 +1,13 @@
 package Recogida.Common
 
 import org.apache.log4j.{Level, Logger}
-<<<<<<< HEAD
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.catalyst.dsl.expressions.StringToAttributeConversionHelper
 import org.apache.spark.sql.functions.{coalesce, col, lit, to_timestamp}
-=======
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions.{col, lit, coalesce ,to_timestamp}
->>>>>>> c8641575fcb73b0a4eb5783ab66337d304073566
 import org.apache.spark.storage.StorageLevel
+import scala.collection.mutable.Map
 
 import java.sql.Timestamp
 import java.util.Date
@@ -65,35 +63,27 @@ object TransformacionesLocal extends Common {
     OPtable().show(10)
 
    print(dataframes.apply("C").take(10).apply(0).toString())
-   val TF =  dataframes("TPL").filter((dataframes("TPL")("DESDE_DT").between("2017-07-01","2017-07-31")) || (dataframes("TPL")("DESDE_DT").lt(lit ("2017-07-01")) && (dataframes("TPL")("HASTA_DT").gt(lit("2017-07-01")) || (dataframes("TPL")("HASTA_DT").isNull)))).join(dataframes("R"),col("ELMUN_ID") === dataframes("R")("ELMUN_ID"), "right")
-   val UFjoin =  dataframes("F").join(dataframes("U"),dataframes("F")("UGACT_ID") === dataframes("U")("UGACT_ID"), "left")
-     .join(dataframes("E"),
-
-
-       dataframes("F")("DESDE_DT") <=  dataframes("E")("HASTA_DT") && ( dataframes("F")("HASTA_DT")
-
-         && dataframes("E")("DESDE_DT").isNull >= dataframes("E")("DESDE_DT")))
-     .join(dataframes("DWE_SGE_SAP_PROVEEDORES"),dataframes("F")("UNFAC_ID") === dataframes("DWE_SGE_SAP_PROVEEDORES")("PROVE_ID"), "right" )
-
-    //
-    //dataframes("F").join(dataframes("E"),dataframes("F")("DESDE_DT") <=  dataframes("E")("HASTA_DT") && (dataframes("F")("HASTA_DT"), dataframes("E")("DESDE_DT").isNull >= dataframes("E")("DESDE_DT")))
-    // V2 = DWE_SGE_SAP_PROVEEDORES
-    //dataframes("F").join(dataframes("DWE_SGE_SAP_PROVEEDORES"),dataframes("F")("UNFAC_ID") === dataframes("DWE_SGE_SAP_PROVEEDORES")("PROVE_ID"), "right" )
-    //TF.show(5)
-
-    //VM_UAACTIVI.show(5)
 
     val TF =  dataframes("TPL").filter((dataframes("TPL")("DESDE_DT")
       .between("2017-07-01","2017-07-31")) || (dataframes("TPL")("DESDE_DT")
       .lt(lit ("2017-07-01")) && (dataframes("TPL")("HASTA_DT").gt(lit("2017-07-01")) || dataframes("TPL")("HASTA_DT")
       .isNull))).toDF
     val jointf= TF.join(dataframes("R"),TF("ELMUN_ID") === dataframes("R")("ELMUN_ID"), "right")
+
+    //Revisar coalesce
     val UFjoin =  dataframes("F").join(dataframes("U"),dataframes("F")("UGACT_ID") === dataframes("U")("UAACT_ID"), "left")
-      .join(dataframes("E"),dataframes("F")("DESDE_DT") <=  dataframes("E")("HASTA_DT") && coalesce(dataframes("F")("HASTA_DT"),dataframes("E")("DESDE_DT")) >= dataframes("E")("DESDE_DT"))
+      .join(dataframes("E"),dataframes("F")("DESDE_DT") <=  dataframes("E")("HASTA_DT") &&
+        coalesce(dataframes("F")("HASTA_DT"),dataframes("E")("DESDE_DT")) >= dataframes("E")("DESDE_DT"))
       .join(dataframes("V2"),dataframes("F")("UNFAC_ID") === dataframes("V2")("PROVE_ID"), "right" )
 
-
     //Filtros
+    dataframes("E")=
+      dataframes("E").where("DESDE_DT between cast('"+"2017-07-01"+"' as date) and cast('"+"2017-07-31"+"' as date)")
+    val max=dataframes("E").as("E").join(dataframes("E").as("P2"),col("E.UFTRG_ID")===col("P2.UFTRG_ID")&&col("P2.DESDE_DT")===col("E.DESDE_DT")).selectExpr("MAX(P2.VERSI_ID)").take(1).apply(0).getString(0).toInt
+    dataframes("E")=dataframes("E").as("E").where(col("E.VERSI_ID")===max)
+    dataframes("U")=dataframes("U").where("ACTIV_ID IN (1,2)");
+
+    //InnerJoin
 
     val innerjoin = dataframes("U").join(dataframes("G"),dataframes("U")("UAACT_ID") === dataframes("G")("UAACT_ID"), "inner")
     val innerGM =   innerjoin.join(dataframes("M"),dataframes("G")("UGACT_ID") === dataframes("M")("UGACT_ID"), "inner")
