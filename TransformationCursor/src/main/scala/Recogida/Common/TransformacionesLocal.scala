@@ -62,85 +62,92 @@ object TransformacionesLocal extends Common {
     }
     OPtable().show(10)
 
-   print(dataframes.apply("C").take(10).apply(0).toString())
-    val TF =  dataframes("TPL").filter((dataframes("TPL")("DESDE_DT")
-      .between("2017-07-01","2017-07-31")) || (dataframes("TPL")("DESDE_DT")
-      .lt(lit ("2017-07-01")) && (dataframes("TPL")("HASTA_DT").gt(lit("2017-07-01")) || dataframes("TPL")("HASTA_DT")
-      .isNull))).toDF
-    val jointf= TF.join(dataframes("R"),TF("ELMUN_ID") === dataframes("R")("ELMUN_ID"), "right")
-
-    //Revisar coalesce
-    val UFjoin =  dataframes("F").join(dataframes("U"),dataframes("F")("UGACT_ID") === dataframes("U")("UAACT_ID"), "left")
-      .join(dataframes("E"),dataframes("F")("DESDE_DT") <=  dataframes("E")("HASTA_DT") &&
-        coalesce(dataframes("F")("HASTA_DT"),dataframes("E")("DESDE_DT")) >= dataframes("E")("DESDE_DT"),"left")
-      .join(dataframes("V2"),dataframes("F")("UNFAC_ID") === dataframes("V2")("PROVE_ID"), "right" )
-
-    //Filtros
-    dataframes("E")=
-      dataframes("E").where("DESDE_DT between cast('"+"2017-07-01"+"' as date) and cast('"+"2017-07-31"+"' as date)")
-    val max=dataframes("E").as("E").join(dataframes("E").as("P2"),col("E.UFTRG_ID")===col("P2.UFTRG_ID")&&col("P2.DESDE_DT")===col("E.DESDE_DT")).selectExpr("MAX(P2.VERSI_ID)").take(1).apply(0).getString(0).toInt
-    dataframes("E")=dataframes("E").as("E").where(col("E.VERSI_ID")===max)
-    dataframes("U")=dataframes("U").where("ACTIV_ID IN (1,2)");
-
-    val innerjoin = dataframes("U").join(dataframes("G"),dataframes("U")("UAACT_ID") === dataframes("G")("UAACT_ID"), "inner")
-    val innerGM =   innerjoin.join(dataframes("M"),dataframes("G")("UGACT_ID") === dataframes("M")("UGACT_ID"), "inner")
-    val joinML =  innerGM.join(dataframes("L"),dataframes("M")("ELMUN_ID") === dataframes("L")("ELMUN_ID"), "inner")
-    val joinFG =  dataframes("G").join(dataframes("F"),dataframes("G")("UGACT_ID") === dataframes("F")("UGACT_ID"), "inner")
-    val joinTF =   joinFG.join(dataframes("T"),dataframes("F")("UFUGA_ID") === dataframes("T")("UFUGA_ID"), "inner")
-    val joinRT =  joinTF.join(dataframes("R"),dataframes("T")("MUNTR_ID") === dataframes("R")("MUNTR_ID"), "inner")
-    val joinLR =  joinRT.join(dataframes("L"),dataframes("R")("ELMUN_ID") === dataframes("L")("ELMUN_ID"), "inner")
-    val joinET =   dataframes("T").join(dataframes("E"),dataframes("T")("UFTRG_ID") === dataframes("E")("UFTRG_ID"), "inner")
-    val joinFP = dataframes("F").join(dataframes("P"),dataframes("F")("UFUGA_ID") === dataframes("P")("UFUGA_ID"), "inner")
-      .join(dataframes("E"),dataframes("P")("DESDE_DT") === dataframes("E")("DESDE_DT"), "inner")
-    val joinUA =   dataframes("UA").join(dataframes("U"),dataframes("UA")("UNADM_ID") === dataframes("U")("UNADM_ID"), "inner")
-      .join(dataframes("C"),dataframes("UA")("COMAU_ID") === dataframes("C")("COMAU_ID"), "inner")
-    val joinSL = dataframes("S").join(dataframes("L"),dataframes("S")("ELMUN_ID") === dataframes("L")("ELMUN_ID"),"inner")
-    val joinTPR = dataframes("TP").join(dataframes("R"),dataframes("TP")("TPREC_ID") === dataframes("R")("TPREC_ID"),"inner")
-    val joinV2V = dataframes("V2").join(dataframes("V"),dataframes("V2")("PROVE_ID") === dataframes("V")("PROVE_ID"), "inner")
-    val joinUF2P = dataframes("F").join(dataframes("P"),dataframes("F")("UFUGA_ID") === dataframes("P")("UFUGA_ID"), "inner")
-    val joinUF =  dataframes("F").as("UF2").join(dataframes("F").as("UF"),col("UF.UGACT_ID") === col("UF2.UGACT_ID"))
-    //joinUF.show(5)
+    def filtrosF():Unit={
+      dataframes("E")=
+        dataframes("E").where("DESDE_DT between cast('"+"2017-07-01"+"' as date) and cast('"+"2017-07-31"+"' as date)")
+      val max=dataframes("E").as("E").join(dataframes("E").as("P2"),col("E.UFTRG_ID")===col("P2.UFTRG_ID")&&col("P2.DESDE_DT")===col("E.DESDE_DT")).selectExpr("MAX(P2.VERSI_ID)").take(1).apply(0).getString(0).toInt
+      dataframes("E")=dataframes("E").as("E").where(col("E.VERSI_ID")===max)
+      dataframes("U")=dataframes("U").where("ACTIV_ID IN (1,2)");
+      dataframes("G")= dataframes("G").filter((dataframes("G")("DESDE_DT").gt(lit("2017-07-01"))
+        && (dataframes("G")("DESDE_DT").lt(lit("2017-07-31"))))
+        || (dataframes("G")("DESDE_DT").lt(lit("2017-07-01"))
+        && (dataframes("G")("HASTA_DT").gt(lit("2017-07-01"))|| dataframes("G")("HASTA_DT").isNull)))
 
 
-    //Filtros
-    val filtG= dataframes("G").filter((dataframes("G")("DESDE_DT").gt(lit("2017-07-01"))
-      && (dataframes("G")("DESDE_DT").lt(lit("2017-07-31"))))
-      || (dataframes("G")("DESDE_DT").lt(lit("2017-07-01"))
-      && (dataframes("G")("HASTA_DT").gt(lit("2017-07-01"))|| dataframes("G")("HASTA_DT").isNull)))
+      dataframes("E")= dataframes("M")filter((dataframes("M")("DESDE_DT").gt(lit("2017-07-01"))
+        && (dataframes("M")("DESDE_DT").lt(lit("2017-07-31"))))
+        || (dataframes("M")("DESDE_DT").lt(lit("2017-07-01"))
+        && (dataframes("M")("HASTA_DT").gt(lit("2017-07-01"))
+        || dataframes("M")("HASTA_DT").isNull)))
 
 
-    val filtMjul01_31= dataframes("M")filter((dataframes("M")("DESDE_DT").gt(lit("2017-07-01"))
-      && (dataframes("M")("DESDE_DT").lt(lit("2017-07-31"))))
-      || (dataframes("M")("DESDE_DT").lt(lit("2017-07-01"))
-      && (dataframes("M")("HASTA_DT").gt(lit("2017-07-01"))
-      || dataframes("M")("HASTA_DT").isNull)))
+      dataframes("T")= dataframes("T").filter((dataframes("T")("DESDE_DT").gt(lit("2017-07-01"))
+        && (dataframes("T")("DESDE_DT").lt(lit("2017-07-31"))))
+        || (dataframes("T")("DESDE_DT").lt(lit("2017-07-01"))
+        && (dataframes("T")("HASTA_DT").gt(lit("2017-07-01"))|| dataframes("T")("HASTA_DT").isNull)))
+
+      dataframes("R") = dataframes("R").filter((dataframes("R")("DESDE_DT").gt(lit("2017-07-01"))
+        && (dataframes("R")("DESDE_DT").lt(lit("2017-07-31")))
+        || (dataframes("R")("DESDE_DT").lt(lit("2017-07-01")))
+        && (dataframes("R")("HASTA_DT").gt(lit("2017-07-01")))
+        || dataframes("R")("HASTA_DT").isNull))
+
+        /*Error por que no se he hecho join aún
+        val filtT = dataframes("T").as("T2").filter(col("T2.DESDE_DT").lt(dataframes("E").as("E2")("E2.DESDE_DT"))
+          && (col("T2.HASTA_DT").gt(dataframes("E").as("E2")("E2.HASTA_DT")))
+          || col("T2.HASTA_DT").isNull)
+
+        val filtS = dataframes("S").filter((dataframes("S")("DESDE_DT").lt(dataframes("E")("DESDE_DT"))
+          && (dataframes("S")("HASTA_DT").gt(dataframes("E")("HASTA_DT")))
+          || dataframes("S")("HASTA_DT").isNull))
+      */
+
+}
 
 
-    val TfiltJUL01_31= dataframes("T").filter((dataframes("T")("DESDE_DT").gt(lit("2017-07-01"))
-      && (dataframes("T")("DESDE_DT").lt(lit("2017-07-31"))))
-      || (dataframes("T")("DESDE_DT").lt(lit("2017-07-01"))
-      && (dataframes("T")("HASTA_DT").gt(lit("2017-07-01"))|| dataframes("T")("HASTA_DT").isNull)))
 
-    val filtR = dataframes("R").filter((dataframes("R")("DESDE_DT").gt(lit("2017-07-01"))
-      && (dataframes("R")("DESDE_DT").lt(lit("2017-07-31")))
-      || (dataframes("R")("DESDE_DT").lt(lit("2017-07-01")))
-      && (dataframes("R")("HASTA_DT").gt(lit("2017-07-01")))
-      || dataframes("R")("HASTA_DT").isNull))
+print(dataframes.apply("C").take(10).apply(0).toString())
+val TF =  dataframes("TPL").filter((dataframes("TPL")("DESDE_DT")
+  .between("2017-07-01","2017-07-31")) || (dataframes("TPL")("DESDE_DT")
+  .lt(lit ("2017-07-01")) && (dataframes("TPL")("HASTA_DT").gt(lit("2017-07-01")) || dataframes("TPL")("HASTA_DT")
+  .isNull))).toDF
+val jointf= TF.join(dataframes("R"),TF("ELMUN_ID") === dataframes("R")("ELMUN_ID"), "right")
 
-    /*Error por que no se he hecho join aún
-    val filtT = dataframes("T").as("T2").filter(col("T2.DESDE_DT").lt(dataframes("E").as("E2")("E2.DESDE_DT"))
-      && (col("T2.HASTA_DT").gt(dataframes("E").as("E2")("E2.HASTA_DT")))
-      || col("T2.HASTA_DT").isNull)
+//Revisar coalesce
+val UFjoin =  dataframes("F").join(dataframes("U"),dataframes("F")("UGACT_ID") === dataframes("U")("UAACT_ID"), "left")
+  .join(dataframes("E"),dataframes("F")("DESDE_DT") <=  dataframes("E")("HASTA_DT") &&
+    coalesce(dataframes("F")("HASTA_DT"),dataframes("E")("DESDE_DT")) >= dataframes("E")("DESDE_DT"),"left")
+  .join(dataframes("V2"),dataframes("F")("UNFAC_ID") === dataframes("V2")("PROVE_ID"), "right" )
 
-    val filtS = dataframes("S").filter((dataframes("S")("DESDE_DT").lt(dataframes("E")("DESDE_DT"))
-      && (dataframes("S")("HASTA_DT").gt(dataframes("E")("HASTA_DT")))
-      || dataframes("S")("HASTA_DT").isNull))
 
-    filtT.show(5)*/
-  }
 
-  def CargaKilos():Unit={}
-  //creacion de la tabla kilos
+val innerjoin = dataframes("U").join(dataframes("G"),dataframes("U")("UAACT_ID") === dataframes("G")("UAACT_ID"), "inner")
+val innerGM =   innerjoin.join(dataframes("M"),dataframes("G")("UGACT_ID") === dataframes("M")("UGACT_ID"), "inner")
+val joinML =  innerGM.join(dataframes("L"),dataframes("M")("ELMUN_ID") === dataframes("L")("ELMUN_ID"), "inner")
+val joinFG =  joinML.join(dataframes("F"),dataframes("G")("UGACT_ID") === dataframes("F")("UGACT_ID"), "inner")
+val joinTF =   joinFG.join(dataframes("T"),dataframes("F")("UFUGA_ID") === dataframes("T")("UFUGA_ID"), "inner")
+val joinRT =  joinTF.join(dataframes("R"),dataframes("T")("MUNTR_ID") === dataframes("R")("MUNTR_ID"), "inner")
+val joinLR =  joinRT.join(dataframes("L").as("L2"),dataframes("R")("ELMUN_ID") === col("L2.ELMUN_ID"), "inner")
+val joinET =   joinLR.join(dataframes("E"),dataframes("T")("UFTRG_ID") === dataframes("E")("UFTRG_ID"), "inner")
+val joinFP = joinET
+  .join(dataframes("P").as("P2"),dataframes("F")("UFUGA_ID") === col("P2.UFUGA_ID"), "inner")
+  .where(dataframes("P")("DESDE_DT") === dataframes("E")("DESDE_DT"))
+
+//val joinUA =   joinET.join(dataframes("U"),dataframes("UA")("UNADM_ID") === dataframes("U")("UNADM_ID"), "inner")
+//  .join(dataframes("C").as("C2"),dataframes("UA")("COMAU_ID") === col("C2.COMAU_ID"), "inner")
+val joinSL = dataframes("S").join(dataframes("L"),dataframes("S")("ELMUN_ID") === dataframes("L")("ELMUN_ID"),"inner")
+val joinTPR = dataframes("TP").join(dataframes("R"),dataframes("TP")("TPREC_ID") === dataframes("R")("TPREC_ID"),"inner")
+val joinV2V = dataframes("V2").join(dataframes("V"),dataframes("V2")("PROVE_ID") === dataframes("V")("PROVE_ID"), "inner")
+val joinUF2P = dataframes("F").join(dataframes("P"),dataframes("F")("UFUGA_ID") === dataframes("P")("UFUGA_ID"), "inner")
+val joinUF =  dataframes("F").as("UF2").join(dataframes("F").as("UF"),col("UF.UGACT_ID") === col("UF2.UGACT_ID"))
+joinFP.show(5)
+
+
+
+}
+
+def CargaKilos():Unit={}
+//creacion de la tabla kilos
 
 
 }

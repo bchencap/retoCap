@@ -16,10 +16,10 @@ object Main {
         date=args.apply(i+1)
       }
     }
-    if(date==""){
+    /*if(date==""){
       println("Falta poner el parámetro de fecha que sigue de la siguiente forma : -d 2017-07-01")
       return;
-    }
+    }*/
     if (local==false){
       println("server")
       //llamar a función dentro de Scala (databricks)
