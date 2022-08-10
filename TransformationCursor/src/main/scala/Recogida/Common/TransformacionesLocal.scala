@@ -55,13 +55,28 @@ object TransformacionesLocal extends Common {
   )
 
   def RecogidaInicial(date: String): Unit = {
-    def OPtable():DataFrame={
-      dataframes("DWE_SGR_MU_ASIG_OPERADORES_UTE").alias("OU").join(dataframes("DWE_SGR_MU_ASIG_OPERADORES_UF").alias("OP"),col("OU.UTE_ID")===col("OP.UTE_ID"),"left")
-      .selectExpr("(1 * coalesce(OP.PORCENTAJE_QT, 100) / 100) * coalesce(OU.PORCENTAJE_QT, 100) / 100 AS POBDC_QT"," OP.OPERADOR_ID as OPERADOR_ID_OP","OU.OPERADOR_ID as OPERADOR_ID_OU","COALESCE(OP.OPERADOR_ID, OU.OPERADOR_ID, 0) AS OPERADOR_ID"," CASE WHEN OP.OPERADOR_ID IS NOT NULL THEN OP.PORCENTAJE_QT ELSE OU.PORCENTAJE_QT END as PORCENTAJE_QT","coalesce(OP.UTE_ID,0) AS UTE_ID"," CASE WHEN OP.UTE_ID IS NOT NULL THEN OP.PORCENTAJE_QT ELSE NULL END AS PORCENTAJE_UTE_QT","OP.DESDE_DT","OP.HASTA_DT","OP.UFUGA_ID","OP.MEDIOSPP_SN").as("OP").join(dataframes("F").as("UF2"),col("UF2.UFUGA_ID")===col("OP.UFUGA_ID"),"right")
+    def from(): Unit ={
+      def OPtable():DataFrame={
+        dataframes("DWE_SGR_MU_ASIG_OPERADORES_UTE").alias("OU").join(dataframes("DWE_SGR_MU_ASIG_OPERADORES_UF").alias("OP"),col("OU.UTE_ID")===col("OP.UTE_ID"),"left")
+          .selectExpr("(1 * coalesce(OP.PORCENTAJE_QT, 100) / 100) * coalesce(OU.PORCENTAJE_QT, 100) / 100 AS POBDC_QT"," OP.OPERADOR_ID as OPERADOR_ID_OP","OU.OPERADOR_ID as OPERADOR_ID_OU","COALESCE(OP.OPERADOR_ID, OU.OPERADOR_ID, 0) AS OPERADOR_ID"," CASE WHEN OP.OPERADOR_ID IS NOT NULL THEN OP.PORCENTAJE_QT ELSE OU.PORCENTAJE_QT END as PORCENTAJE_QT","coalesce(OP.UTE_ID,0) AS UTE_ID"," CASE WHEN OP.UTE_ID IS NOT NULL THEN OP.PORCENTAJE_QT ELSE NULL END AS PORCENTAJE_UTE_QT","OP.DESDE_DT","OP.HASTA_DT","OP.UFUGA_ID","OP.MEDIOSPP_SN").as("OP").join(dataframes("F").as("UF2"),col("UF2.UFUGA_ID")===col("OP.UFUGA_ID"),"right")
 
+      }
+      val TF =  dataframes("TPL").filter((dataframes("TPL")("DESDE_DT")
+        .between("2017-07-01","2017-07-31")) || (dataframes("TPL")("DESDE_DT")
+        .lt(lit ("2017-07-01")) && (dataframes("TPL")("HASTA_DT").gt(lit("2017-07-01")) || dataframes("TPL")("HASTA_DT")
+        .isNull))).toDF
+      val jointf= TF.join(dataframes("R").as("R"),TF("ELMUN_ID") === col("R.ELMUN_ID"), "right")
+
+      //Revisar coalesce
+      val UFjoin =  dataframes("F").join(dataframes("U").as("U"),dataframes("F")("UGACT_ID") === col("U.UAACT_ID"), "left")
+        .join(dataframes("E"),dataframes("F")("DESDE_DT") <=  dataframes("E")("HASTA_DT") &&
+          coalesce(dataframes("F")("HASTA_DT"),dataframes("E")("DESDE_DT")) >= dataframes("E")("DESDE_DT"),"left")
+        .join(dataframes("V2").as("V2"),dataframes("F")("UNFAC_ID") === dataframes("V2")("PROVE_ID"), "right" )
+
+      dataframes+= "UF2"->OPtable()
+      dataframes+= "UF"->UFjoin
+      dataframes+= "R"->jointf
     }
-    OPtable().show(10)
-
     def filtrosF():Unit={
       dataframes("E")=
         dataframes("E").where("DESDE_DT between cast('"+"2017-07-01"+"' as date) and cast('"+"2017-07-31"+"' as date)")
@@ -74,7 +89,7 @@ object TransformacionesLocal extends Common {
         && (dataframes("G")("HASTA_DT").gt(lit("2017-07-01"))|| dataframes("G")("HASTA_DT").isNull)))
 
 
-      dataframes("E")= dataframes("M")filter((dataframes("M")("DESDE_DT").gt(lit("2017-07-01"))
+      dataframes("M")= dataframes("M").filter((dataframes("M")("DESDE_DT").gt(lit("2017-07-01"))
         && (dataframes("M")("DESDE_DT").lt(lit("2017-07-31"))))
         || (dataframes("M")("DESDE_DT").lt(lit("2017-07-01"))
         && (dataframes("M")("HASTA_DT").gt(lit("2017-07-01"))
@@ -86,64 +101,52 @@ object TransformacionesLocal extends Common {
         || (dataframes("T")("DESDE_DT").lt(lit("2017-07-01"))
         && (dataframes("T")("HASTA_DT").gt(lit("2017-07-01"))|| dataframes("T")("HASTA_DT").isNull)))
 
-      dataframes("R") = dataframes("R").filter((dataframes("R")("DESDE_DT").gt(lit("2017-07-01"))
-        && (dataframes("R")("DESDE_DT").lt(lit("2017-07-31")))
-        || (dataframes("R")("DESDE_DT").lt(lit("2017-07-01")))
-        && (dataframes("R")("HASTA_DT").gt(lit("2017-07-01")))
-        || dataframes("R")("HASTA_DT").isNull))
+      dataframes("R") = dataframes("R").filter((col("R.DESDE_DT").gt(lit("2017-07-01"))
+        && (col("R.DESDE_DT").lt(lit("2017-07-31")))
+        || (col("R.DESDE_DT").lt(lit("2017-07-01")))
+        && (col("R.HASTA_DT").gt(lit("2017-07-01")))
+        || col("R.HASTA_DT").isNull))
 
-        /*Error por que no se he hecho join aún
-        val filtT = dataframes("T").as("T2").filter(col("T2.DESDE_DT").lt(dataframes("E").as("E2")("E2.DESDE_DT"))
-          && (col("T2.HASTA_DT").gt(dataframes("E").as("E2")("E2.HASTA_DT")))
-          || col("T2.HASTA_DT").isNull)
-
-        val filtS = dataframes("S").filter((dataframes("S")("DESDE_DT").lt(dataframes("E")("DESDE_DT"))
-          && (dataframes("S")("HASTA_DT").gt(dataframes("E")("HASTA_DT")))
-          || dataframes("S")("HASTA_DT").isNull))
-      */
 
 }
+    def joins():DataFrame={
+      dataframes("F")=dataframes("F").join(dataframes("V").as("V"),col("V.PROVE_ID")===col("UNFAC_ID"),"right")
+      dataframes("F").show(10)
+      val innerjoin = dataframes("U").join(dataframes("G"),dataframes("U")("UAACT_ID") === dataframes("G")("UAACT_ID"), "inner")
+      val innerGM =   innerjoin.join(dataframes("M"),dataframes("G")("UGACT_ID") === dataframes("M")("UGACT_ID"), "inner")
+      val joinML =  innerGM.join(dataframes("L").as("L"),dataframes("M")("ELMUN_ID") ===col("L.ELMUN_ID"), "inner")
+      val joinFG =  joinML.join(dataframes("F"),dataframes("G")("UGACT_ID") === dataframes("F")("UGACT_ID"), "inner")
+      val joinTF =   joinFG.join(dataframes("T").as("T"),dataframes("F")("UFUGA_ID") === col("T.UFUGA_ID"), "inner")
+      joinTF.show(2)
+      dataframes("R").show(3)
+      val joinRT =  joinTF.join(dataframes("R"),col("T.MUNTR_ID") === col("R.MUNTR_ID"), "inner")
+      val joinLR =  joinRT.where(col("R.ELMUN_ID") === col("L.ELMUN_ID"))
+      val joinET =   joinLR.join(dataframes("E").as("E"),col("T.UFTRG_ID") === col("E.UFTRG_ID"), "inner")
+      val joinFP = joinET
+        .join(dataframes("P").as("P2"),dataframes("F")("UFUGA_ID") === col("P2.UFUGA_ID"), "inner")
+        .where(dataframes("P")("DESDE_DT") === dataframes("E")("DESDE_DT"))
 
+      val joinUA =   joinFP.join(dataframes("UA").as("UA"),col("UA.UNADM_ID") ===dataframes("U")("UNADM_ID"), "inner")
+        .join(dataframes("C").as("C2"),col("UA.COMAU_ID") === col("C2.COMAU_ID"), "inner")
+      val joinSL = joinUA.join(dataframes("S").as("S2"),col("S2.ELMUN_ID") === col("L.ELMUN_ID"),"inner")
+      val joinTPR = joinSL.join(dataframes("TP").as("TP"),col("TP.TPREC_ID") === dataframes("R")("TPREC_ID"),"inner")
+      val joinUF2P =  joinTPR.join(dataframes("UF2"),col("UF2.UFUGA_ID") === col("P2.UFUGA_ID"))
+      val joinUF =  joinUF2P.join(dataframes("UF").as("UF"),col("UF.UFUGA_ID") === col("UF2.UFUGA_ID"))
+      val joinV2V = joinUF.where(col("UF.PROVE_ID") === col("V.PROVE_ID"))
+      joinV2V
+    }
 
-
-print(dataframes.apply("C").take(10).apply(0).toString())
-val TF =  dataframes("TPL").filter((dataframes("TPL")("DESDE_DT")
-  .between("2017-07-01","2017-07-31")) || (dataframes("TPL")("DESDE_DT")
-  .lt(lit ("2017-07-01")) && (dataframes("TPL")("HASTA_DT").gt(lit("2017-07-01")) || dataframes("TPL")("HASTA_DT")
-  .isNull))).toDF
-val jointf= TF.join(dataframes("R"),TF("ELMUN_ID") === dataframes("R")("ELMUN_ID"), "right")
-
-//Revisar coalesce
-val UFjoin =  dataframes("F").join(dataframes("U"),dataframes("F")("UGACT_ID") === dataframes("U")("UAACT_ID"), "left")
-  .join(dataframes("E"),dataframes("F")("DESDE_DT") <=  dataframes("E")("HASTA_DT") &&
-    coalesce(dataframes("F")("HASTA_DT"),dataframes("E")("DESDE_DT")) >= dataframes("E")("DESDE_DT"),"left")
-  .join(dataframes("V2"),dataframes("F")("UNFAC_ID") === dataframes("V2")("PROVE_ID"), "right" )
-
-
-
-val innerjoin = dataframes("U").join(dataframes("G"),dataframes("U")("UAACT_ID") === dataframes("G")("UAACT_ID"), "inner")
-val innerGM =   innerjoin.join(dataframes("M"),dataframes("G")("UGACT_ID") === dataframes("M")("UGACT_ID"), "inner")
-val joinML =  innerGM.join(dataframes("L"),dataframes("M")("ELMUN_ID") === dataframes("L")("ELMUN_ID"), "inner")
-val joinFG =  joinML.join(dataframes("F"),dataframes("G")("UGACT_ID") === dataframes("F")("UGACT_ID"), "inner")
-val joinTF =   joinFG.join(dataframes("T"),dataframes("F")("UFUGA_ID") === dataframes("T")("UFUGA_ID"), "inner")
-val joinRT =  joinTF.join(dataframes("R"),dataframes("T")("MUNTR_ID") === dataframes("R")("MUNTR_ID"), "inner")
-val joinLR =  joinRT.join(dataframes("L").as("L2"),dataframes("R")("ELMUN_ID") === col("L2.ELMUN_ID"), "inner")
-val joinET =   joinLR.join(dataframes("E"),dataframes("T")("UFTRG_ID") === dataframes("E")("UFTRG_ID"), "inner")
-val joinFP = joinET
-  .join(dataframes("P").as("P2"),dataframes("F")("UFUGA_ID") === col("P2.UFUGA_ID"), "inner")
-  .where(dataframes("P")("DESDE_DT") === dataframes("E")("DESDE_DT"))
-
-//val joinUA =   joinET.join(dataframes("U"),dataframes("UA")("UNADM_ID") === dataframes("U")("UNADM_ID"), "inner")
-//  .join(dataframes("C").as("C2"),dataframes("UA")("COMAU_ID") === col("C2.COMAU_ID"), "inner")
-val joinSL = dataframes("S").join(dataframes("L"),dataframes("S")("ELMUN_ID") === dataframes("L")("ELMUN_ID"),"inner")
-val joinTPR = dataframes("TP").join(dataframes("R"),dataframes("TP")("TPREC_ID") === dataframes("R")("TPREC_ID"),"inner")
-val joinV2V = dataframes("V2").join(dataframes("V"),dataframes("V2")("PROVE_ID") === dataframes("V")("PROVE_ID"), "inner")
-val joinUF2P = dataframes("F").join(dataframes("P"),dataframes("F")("UFUGA_ID") === dataframes("P")("UFUGA_ID"), "inner")
-val joinUF =  dataframes("F").as("UF2").join(dataframes("F").as("UF"),col("UF.UGACT_ID") === col("UF2.UGACT_ID"))
-joinFP.show(5)
-
-
-
+    from()
+    filtrosF()
+    val dfJoin=joins()
+    val filtT = dfJoin.filter(col("T.DESDE_DT").lt(col("E.DESDE_DT"))
+      && (col("T.HASTA_DT").gt(col("E.HASTA_DT")))
+      || col("T.HASTA_DT").isNull)
+      .filter((dataframes("S")("DESDE_DT").lt(col("E.DESDE_DT"))
+      && (dataframes("S")("HASTA_DT").gt(col("E.HASTA_DT")))
+      || dataframes("S")("HASTA_DT").isNull))
+    //filtT.take(3)
+    print("fin")
 }
 
 def CargaKilos():Unit={}
