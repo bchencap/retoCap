@@ -1,14 +1,12 @@
 package Recogida.Common
 
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.apache.spark.sql.catalyst.dsl.expressions.StringToAttributeConversionHelper
-import org.apache.spark.sql.functions.{coalesce, col, lit, to_timestamp}
-import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.functions.{col, lit, coalesce ,to_timestamp}
+import org.apache.spark.sql.{DataFrame, SparkSession, functions}
+import org.apache.spark.sql.catalyst.dsl.expressions.{DslExpression, StringToAttributeConversionHelper}
+import org.apache.spark.sql.functions.{coalesce, col, lit, to_timestamp, when}
 import org.apache.spark.storage.StorageLevel
-import scala.collection.mutable.Map
 
+import scala.collection.mutable.Map
 import java.sql.Timestamp
 import java.util.Date
 
@@ -65,7 +63,7 @@ object TransformacionesLocal extends Common {
         .between("2017-07-01","2017-07-31")) || (dataframes("TPL")("DESDE_DT")
         .lt(lit ("2017-07-01")) && (dataframes("TPL")("HASTA_DT").gt(lit("2017-07-01")) || dataframes("TPL")("HASTA_DT")
         .isNull))).toDF
-      val jointf= TF.join(dataframes("R").as("R"),TF("ELMUN_ID") === col("R.ELMUN_ID"), "right")
+      val jointf= TF.as("TF").join(dataframes("R").as("R"),col("TF.ELMUN_ID") === col("R.ELMUN_ID"), "right")
 
       //Revisar coalesce
       val UFjoin =  dataframes("F").join(dataframes("U").as("U"),dataframes("F")("UGACT_ID") === col("U.UAACT_ID"), "left")
@@ -110,20 +108,20 @@ object TransformacionesLocal extends Common {
 
 }
     def joins():DataFrame={
-      dataframes("F")=dataframes("F").join(dataframes("V").as("V"),col("V.PROVE_ID")===col("UNFAC_ID"),"right")
-      dataframes("F").show(10)
-      val innerjoin = dataframes("U").join(dataframes("G"),dataframes("U")("UAACT_ID") === dataframes("G")("UAACT_ID"), "inner")
-      val innerGM =   innerjoin.join(dataframes("M"),dataframes("G")("UGACT_ID") === dataframes("M")("UGACT_ID"), "inner")
+      dataframes("F")=dataframes("F").as("F").join(dataframes("V").as("V"),col("V.PROVE_ID")===col("F.UNFAC_ID"),"right")
+      //dataframes("F").show(10)
+      val innerjoin = dataframes("U").as("U").join(dataframes("G").as("G"),col("U.UAACT_ID") === col("G.UAACT_ID"), "inner")
+      val innerGM =   innerjoin.join(dataframes("M"),col("G.UGACT_ID") === dataframes("M")("UGACT_ID"), "inner")
       val joinML =  innerGM.join(dataframes("L").as("L"),dataframes("M")("ELMUN_ID") ===col("L.ELMUN_ID"), "inner")
-      val joinFG =  joinML.join(dataframes("F"),dataframes("G")("UGACT_ID") === dataframes("F")("UGACT_ID"), "inner")
+      val joinFG =  joinML.join(dataframes("F"),col("G.UGACT_ID") === dataframes("F")("UGACT_ID"), "inner")
       val joinTF =   joinFG.join(dataframes("T").as("T"),dataframes("F")("UFUGA_ID") === col("T.UFUGA_ID"), "inner")
       joinTF.show(2)
-      dataframes("R").show(3)
+      //dataframes("R").show(3)
       val joinRT =  joinTF.join(dataframes("R"),col("T.MUNTR_ID") === col("R.MUNTR_ID"), "inner")
       val joinLR =  joinRT.where(col("R.ELMUN_ID") === col("L.ELMUN_ID"))
       val joinET =   joinLR.join(dataframes("E").as("E"),col("T.UFTRG_ID") === col("E.UFTRG_ID"), "inner")
       val joinFP = joinET
-        .join(dataframes("P").as("P2"),dataframes("F")("UFUGA_ID") === col("P2.UFUGA_ID"), "inner")
+        .join(dataframes("P").as("P2"),col("F.UFUGA_ID") === col("P2.UFUGA_ID"), "inner")
         .where(dataframes("P")("DESDE_DT") === dataframes("E")("DESDE_DT"))
 
       val joinUA =   joinFP.join(dataframes("UA").as("UA"),col("UA.UNADM_ID") ===dataframes("U")("UNADM_ID"), "inner")
@@ -138,6 +136,7 @@ object TransformacionesLocal extends Common {
 
     from()
     filtrosF()
+    dataframes("E").show(5)
     val dfJoin=joins()
     val filtT = dfJoin.filter(col("T.DESDE_DT").lt(col("E.DESDE_DT"))
       && (col("T.HASTA_DT").gt(col("E.HASTA_DT")))
@@ -146,8 +145,33 @@ object TransformacionesLocal extends Common {
       && (dataframes("S")("HASTA_DT").gt(col("E.HASTA_DT")))
       || dataframes("S")("HASTA_DT").isNull))
     //filtT.take(3)
+    val groupF = filtT
+      //.groupBy(when(col("OP.UTE_ID").isNull,0).otherwise(col("OP.UTE_ID"))).agg(functions.sum("E.POBIN_QT" ), functions.sum ("E.POBLA_QT"))
+      .groupBy("E.DESDE_DT" , "U.UNADM_ID" , "U.ACTIV_ID", "G.UNGES_ID" , "L.ELMUN_ID" , "F.UNFAC_ID", "R.TPREC_ID" ,
+    "S2.TPENT_ID" , "TF.TPGFA_ID" , "TP.PROCE_ID", "E.POBIN_QT", "E.POBLA_QT" , "OPERADOR_ID_OU", "OPERADOR_ID",
+      "V.PROVE_NM","POBDC_QT","PORCENTAJE_QT", "PORCENTAJE_UTE_QT","OP.MEDIOSPP_SN" ).agg(functions.sum("E.POBIN_QT" ), functions.sum ("E.POBLA_QT"))
+
+    groupF.selectExpr("E.DESDE_DT", "U.UNADM_ID",
+      "U.ACTIV_ID",
+      "G.UNGES_ID",
+      "L.ELMUN_ID",
+      "F.UNFAC_ID",
+      "R.TPREC_ID",
+      "S2.TPENT_ID",
+      "coalesce( TF.TPGFA_ID,  S2.TPENT_ID,  TF.TPGFA_ID ) TPGFA_ID",
+      "coalesce(TP.PROCE_ID, 0, TP.PROCE_ID) PROCE_ID",
+      "V.PROVE_NM",
+      "coalesce(OPERADOR_ID,0) OPERADOR_ID",
+      "SUM(E.POBIN_QT) * coalesce(POBDC_QT,1) as POBDC_QT" ,
+      "SUM(E.POBLA_QT) * coalesce(POBDC_QT,1) as POBGC_QT",
+      "PORCENTAJE_QT",
+       //"isnull(UTE_ID,0) AS UTE_ID",
+      "PORCENTAJE_UTE_QT","OP.MEDIOSPP_SN").show(5)
+
+
     print("fin")
 }
+
 
 def CargaKilos():Unit={}
 //creacion de la tabla kilos
