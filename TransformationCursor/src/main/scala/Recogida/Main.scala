@@ -27,6 +27,8 @@ object Main {
     else {
       //llamar a función local
       println("local")
+      TransformacionesLocal.leerDatos()
+
       TransformacionesLocal.RecogidaInicial(date)
     }
   }

@@ -6,56 +6,73 @@ import org.apache.spark.sql.catalyst.dsl.expressions.{DslExpression, StringToAtt
 import org.apache.spark.sql.functions.{coalesce, col, lit, to_timestamp, when}
 import org.apache.spark.storage.StorageLevel
 
+import java.io.File
 import scala.collection.mutable.Map
 import java.sql.Timestamp
 import java.util.Date
 
 
 object TransformacionesLocal extends Common {
+  def extractFilePath(name:String):String={
+    val format = new java.text.SimpleDateFormat("yyyyMMdd_hhmmss")
 
-  var dataframes=Map(
-    "V2"->spark.read.option("header","true").csv("./DWE_SGE_SAP_PROVEEDORES_20220624_165906.csv.bz2"),
-    "V"->spark.read.option("header","true").csv("./DWE_SGE_SAP_PROVEEDORES_20220624_165906.csv.bz2"),
-    "DWE_SGR_MU_ASIG_OPERADORES_UF"->spark.read.option("header","true").csv("./DWE_SGR_MU_ASIG_OPERADORES_UF_TMP_20220624_165920.csv.bz2"),
-    "DWE_SGR_MU_ASIG_OPERADORES_UTE"->spark.read.option("header","true").csv("./DWE_SGR_MU_ASIG_OPERADORES_UTE_TMP_20220624_165929.csv.bz2"),
+    val file = new File("./")
+    val files=file.listFiles.filter(_.isFile)
+    .filter(_.getName.startsWith(name))
+    .map((x)=> x).toList.sortBy((x)=>format.parse(x.getName.substring(name.length,x.getName.indexOf('.'))).getTime)(Ordering[Long].reverse)
+
+    return files(0).getName;
+  }
+  var readFiles=Map(
+    "V2"->"DWE_SGE_SAP_PROVEEDORES_",
+    "V"->"DWE_SGE_SAP_PROVEEDORES_",
+    "DWE_SGR_MU_ASIG_OPERADORES_UF"->"DWE_SGR_MU_ASIG_OPERADORES_UF_TMP_",
+    "DWE_SGR_MU_ASIG_OPERADORES_UTE"->"DWE_SGR_MU_ASIG_OPERADORES_UTE_TMP_",
     //DWE_VM_COMUAUTO
-    "C"->spark.read.option("header","true").csv("./DWE_VM_COMUAUTO_20220624_171044.csv.bz2"),
+    "C"->"DWE_VM_COMUAUTO_",
     //DWE_VM_ELTREMED NO SE USA
-    "ELTREMED"->spark.read.option("header","true").csv("./DWE_VM_ELTREMED_20220624_172354.csv.bz2"),
+    "ELTREMED"->"DWE_VM_ELTREMED_",
     //DWE_VM_ELTREPOB // en algun lado está como P2
-    "E"->spark.read.option("header","true").csv("./DWE_VM_ELTREPOB_20220624_172746.csv.bz2"),
+    "E"->"DWE_VM_ELTREPOB_",
     //DWE_VM_ENTLOCAL
-    "L"->spark.read.option("header","true").csv("./DWE_VM_ENTLOCAL_20220624_171535.csv.bz2"),
+    "L"->"DWE_VM_ENTLOCAL_",
     //DWE_VM_ENTLTPRE
-    "R"->spark.read.option("header","true").csv("./DWE_VM_ENTLTPRE_20220624_172757.csv.bz2"),
+    "R"->"DWE_VM_ENTLTPRE_",
     //DWE_VM_POBPERST
-    "P"->spark.read.option("header","true").csv("./DWE_VM_POBPERST_20220624_172950.csv.bz2"),
+    "P"->"DWE_VM_POBPERST_",
     //DWE_VM_TIPOLENT
-    "S"->spark.read.option("header","true").csv("./DWE_VM_TIPOLENT_20220624_174014.csv.bz2"),
+    "S"->"DWE_VM_TIPOLENT_",
     //DWE_VM_TIPOLFAC está como TP
-    "TPL"->spark.read.option("header","true").csv("./DWE_VM_TIPOLFAC_20220624_174344.csv.bz2"),
+    "TPL"->"DWE_VM_TIPOLFAC_",
     //DWE_VM_TPRECOGI
-    "TP"->spark.read.option("header","true").csv("./DWE_VM_TPRECOGI_20220624_174341.csv.bz2"),
+    "TP"->"DWE_VM_TPRECOGI_",
     //DWE_VM_UAACTIVI
-    "U"->spark.read.option("header","true").csv("./DWE_VM_UAACTIVI_20220624_174209.csv.bz2"),
+    "U"->"DWE_VM_UAACTIVI_",
     //DWE_VM_UFTRGMUN
-    "T"->spark.read.option("header","true").csv("./DWE_VM_UFTRGMUN_20220624_174447.csv.bz2"),
+    "T"->"DWE_VM_UFTRGMUN_",
     //DWE_VM_UFUGACTI TAMBIÉN ESTÁ COMO UF Y UF2
-    "F"->spark.read.option("header","true").csv("./DWE_VM_UFUGACTI_20220624_174339.csv.bz2"),
+    "F"->"DWE_VM_UFUGACTI_",
     //DWE_VM_UGACTIVI
-    "G"->spark.read.option("header","true").csv("./DWE_VM_UGACTIVI_20220624_174307.csv.bz2"),
+    "G"->"DWE_VM_UGACTIVI_",
     //DWE_VM_UGACTMUN
-    "M"->spark.read.option("header","true").csv("./DWE_VM_UGACTMUN_20220624_174425.csv.bz2"),
+    "M"->"DWE_VM_UGACTMUN_",
     //DWE_VM_UNIDADMI
-    "UA"->spark.read.option("header","true").csv("./DWE_VM_UNIDADMI_20220624_174438.csv.bz2"),
+    "UA"->"DWE_VM_UNIDADMI_",
     //DWE_VM_VOLUMENS NO SE USA
-    "VOL"->spark.read.option("header","true").csv("./DWE_VM_VOLUMENS_20220714_125755.csv.bz2"),
+    "VOL"->"DWE_VM_VOLUMENS_"
   )
-
+  var dataframes=Map[String,DataFrame]()
+  def leerDatos(): Unit ={
+    readFiles.foreach(
+      (key)=>{
+        dataframes+= key._1 -> spark.read.option("header","true").csv(extractFilePath(key._2))
+      }
+    )
+  }
   def RecogidaInicial(date: String): Unit = {
     def from(): Unit ={
       def OPtable():DataFrame={
-        dataframes("DWE_SGR_MU_ASIG_OPERADORES_UTE").alias("OU").join(dataframes("DWE_SGR_MU_ASIG_OPERADORES_UF").alias("OP"),col("OU.UTE_ID")===col("OP.UTE_ID"),"left")
+        dataframes("DWE_SGR_MU_ASIG_OPERADORES_UTE").alias("OU").join(dataframes("DWE_SGR_MU_ASIG_OPERADORES_UF").alias("OP"),col("OU.UTE_ID")===col("OP.UTE_ID"),"right")
           .selectExpr("(1 * coalesce(OP.PORCENTAJE_QT, 100) / 100) * coalesce(OU.PORCENTAJE_QT, 100) / 100 AS POBDC_QT"," OP.OPERADOR_ID as OPERADOR_ID_OP","OU.OPERADOR_ID as OPERADOR_ID_OU","COALESCE(OP.OPERADOR_ID, OU.OPERADOR_ID, 0) AS OPERADOR_ID"," CASE WHEN OP.OPERADOR_ID IS NOT NULL THEN OP.PORCENTAJE_QT ELSE OU.PORCENTAJE_QT END as PORCENTAJE_QT","coalesce(OP.UTE_ID,0) AS UTE_ID"," CASE WHEN OP.UTE_ID IS NOT NULL THEN OP.PORCENTAJE_QT ELSE NULL END AS PORCENTAJE_UTE_QT","OP.DESDE_DT","OP.HASTA_DT","OP.UFUGA_ID","OP.MEDIOSPP_SN").as("OP").join(dataframes("F").as("UF2"),col("UF2.UFUGA_ID")===col("OP.UFUGA_ID"),"right")
 
       }
@@ -111,15 +128,17 @@ object TransformacionesLocal extends Common {
       dataframes("F")=dataframes("F").as("F").join(dataframes("V").as("V"),col("V.PROVE_ID")===col("F.UNFAC_ID"),"right")
       //dataframes("F").show(10)
       val innerjoin = dataframes("U").as("U").join(dataframes("G").as("G"),col("U.UAACT_ID") === col("G.UAACT_ID"), "inner")
+      innerjoin.show(3)
       val innerGM =   innerjoin.join(dataframes("M"),col("G.UGACT_ID") === dataframes("M")("UGACT_ID"), "inner")
       val joinML =  innerGM.join(dataframes("L").as("L"),dataframes("M")("ELMUN_ID") ===col("L.ELMUN_ID"), "inner")
       val joinFG =  joinML.join(dataframes("F"),col("G.UGACT_ID") === dataframes("F")("UGACT_ID"), "inner")
       val joinTF =   joinFG.join(dataframes("T").as("T"),dataframes("F")("UFUGA_ID") === col("T.UFUGA_ID"), "inner")
-      joinTF.show(2)
+
       //dataframes("R").show(3)
       val joinRT =  joinTF.join(dataframes("R"),col("T.MUNTR_ID") === col("R.MUNTR_ID"), "inner")
       val joinLR =  joinRT.where(col("R.ELMUN_ID") === col("L.ELMUN_ID"))
-      val joinET =   joinLR.join(dataframes("E").as("E"),col("T.UFTRG_ID") === col("E.UFTRG_ID"), "inner")
+      val joinET =   joinLR.join(dataframes("E").as("E"),col("T.UFTRG_ID") === col("E.UFTRG_ID"), "inner").cache()
+      joinET.show(2)
       val joinFP = joinET
         .join(dataframes("P").as("P2"),col("F.UFUGA_ID") === col("P2.UFUGA_ID"), "inner")
         .where(dataframes("P")("DESDE_DT") === dataframes("E")("DESDE_DT"))
@@ -131,6 +150,7 @@ object TransformacionesLocal extends Common {
       val joinUF2P =  joinTPR.join(dataframes("UF2"),col("UF2.UFUGA_ID") === col("P2.UFUGA_ID"))
       val joinUF =  joinUF2P.join(dataframes("UF").as("UF"),col("UF.UFUGA_ID") === col("UF2.UFUGA_ID"))
       val joinV2V = joinUF.where(col("UF.PROVE_ID") === col("V.PROVE_ID"))
+      joinV2V.columns.foreach(println(_))
       joinV2V
     }
 
@@ -145,13 +165,9 @@ object TransformacionesLocal extends Common {
       && (dataframes("S")("HASTA_DT").gt(col("E.HASTA_DT")))
       || dataframes("S")("HASTA_DT").isNull))
     //filtT.take(3)
-    val groupF = filtT
-      //.groupBy(when(col("OP.UTE_ID").isNull,0).otherwise(col("OP.UTE_ID"))).agg(functions.sum("E.POBIN_QT" ), functions.sum ("E.POBLA_QT"))
-      .groupBy("E.DESDE_DT" , "U.UNADM_ID" , "U.ACTIV_ID", "G.UNGES_ID" , "L.ELMUN_ID" , "F.UNFAC_ID", "R.TPREC_ID" ,
-    "S2.TPENT_ID" , "TF.TPGFA_ID" , "TP.PROCE_ID", "E.POBIN_QT", "E.POBLA_QT" , "OPERADOR_ID_OU", "OPERADOR_ID",
-      "V.PROVE_NM","POBDC_QT","PORCENTAJE_QT", "PORCENTAJE_UTE_QT","OP.MEDIOSPP_SN" ).agg(functions.sum("E.POBIN_QT" ), functions.sum ("E.POBLA_QT"))
 
-    groupF.selectExpr("E.DESDE_DT", "U.UNADM_ID",
+    filtT.selectExpr(
+      "E.DESDE_DT", "U.UNADM_ID",
       "U.ACTIV_ID",
       "G.UNGES_ID",
       "L.ELMUN_ID",
@@ -162,11 +178,17 @@ object TransformacionesLocal extends Common {
       "coalesce(TP.PROCE_ID, 0, TP.PROCE_ID) PROCE_ID",
       "V.PROVE_NM",
       "coalesce(OPERADOR_ID,0) OPERADOR_ID",
-      "SUM(E.POBIN_QT) * coalesce(POBDC_QT,1) as POBDC_QT" ,
-      "SUM(E.POBLA_QT) * coalesce(POBDC_QT,1) as POBGC_QT",
       "PORCENTAJE_QT",
-       //"isnull(UTE_ID,0) AS UTE_ID",
-      "PORCENTAJE_UTE_QT","OP.MEDIOSPP_SN").show(5)
+      "coalesce(UTE_ID,0) AS UTE_ID",
+      "PORCENTAJE_UTE_QT",
+      "OP.MEDIOSPP_SN").show(5)
+
+      //.groupBy(when(col("OP.UTE_ID").isNull,0).otherwise(col("OP.UTE_ID"))).agg(functions.sum("E.POBIN_QT" ), functions.sum ("E.POBLA_QT"))
+    /*  .groupBy("E.DESDE_DT" , "U.UNADM_ID" , "U.ACTIV_ID", "G.UNGES_ID" , "L.ELMUN_ID" , "F.UNFAC_ID", "R.TPREC_ID" ,
+    "S2.TPENT_ID" , "TF.TPGFA_ID" , "TP.PROCE_ID", "E.POBIN_QT", "E.POBLA_QT" , "OPERADOR_ID_OU", "OPERADOR_ID",
+      "V.PROVE_NM","POBDC_QT","PORCENTAJE_QT", "PORCENTAJE_UTE_QT","OP.MEDIOSPP_SN" ).agg(functions.sum("E.POBIN_QT" ), functions.sum ("E.POBLA_QT"))
+*/
+(5)
 
 
     print("fin")
