@@ -103,8 +103,13 @@ object TransformacionesLocal extends Common {
       dataframes("E")=
         dataframes("E").where("DESDE_DT between cast('"+"2017-07-01"+"' as date) and cast('"+"2017-07-31"+"' as date)")
       val max=dataframes("E").as("E").join(dataframes("E").as("P2"),col("E.UFTRG_ID")===col("P2.UFTRG_ID")&&col("P2.DESDE_DT")===col("E.DESDE_DT")).selectExpr("MAX(P2.VERSI_ID)").take(1).apply(0).getString(0).toInt
-      dataframes("E")=dataframes("E").as("E").where(col("E.VERSI_ID")===max).drop("P2.UFTRG_ID","P2.DESDE_DT")
+      //dataframes("E")=dataframes("E").as("E").where(col("E.VERSI_ID")===max).drop("P2.UFTRG_ID","P2.DESDE_DT")
+      dataframes("E")= dataframes("E").withColumn("VERSI_ID",(col("VERSI_ID")===max).cast("Integer"))
+      dataframes("E").show(10)
+      print(dataframes("E").count())
+
       dataframes("U")=dataframes("U").where("ACTIV_ID IN (1,2)");
+
       dataframes("G")= dataframes("G").filter((dataframes("G")("DESDE_DT").geq(lit("2017-07-01"))
         && (dataframes("G")("DESDE_DT").leq(lit("2017-07-31"))))
         || (dataframes("G")("DESDE_DT").leq(lit("2017-07-01"))
@@ -197,8 +202,10 @@ object TransformacionesLocal extends Common {
       "PORCENTAJE_QT",
       "UTE_ID",
       "PORCENTAJE_UTE_QT",
-      "OP.MEDIOSPP_SN").sum("POBDC_QT","POBGC_QT").orderBy(col("UNADM_ID").asc).count()
-    println(filtT)
+      "OP.MEDIOSPP_SN").sum("POBDC_QT","POBGC_QT").orderBy(col("UNADM_ID").asc).show(20)
+       //filtT.coalesce(1).write.options(Map("delimiter"->";", "emptyValue"->"NULL","header"->"true")).csv("data3.csv")
+
+
 
 
 
