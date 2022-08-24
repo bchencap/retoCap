@@ -105,10 +105,9 @@ object TransformacionesLocal extends Common {
       val max=dataframes("E").as("E").join(dataframes("E").as("P2"),col("E.UFTRG_ID")===col("P2.UFTRG_ID")&&col("P2.DESDE_DT")===col("E.DESDE_DT")).selectExpr("MAX(P2.VERSI_ID)").take(1).apply(0).getString(0).toInt
       //dataframes("E")=dataframes("E").as("E").where(col("E.VERSI_ID")===max).drop("P2.UFTRG_ID","P2.DESDE_DT")
       dataframes("E")= dataframes("E").withColumn("VERSI_ID",(col("VERSI_ID")===max).cast("Integer"))
-      dataframes("E").show(10)
-      print(dataframes("E").count())
-
+      println("Eres tu?: "+dataframes("U").count());
       dataframes("U")=dataframes("U").where("ACTIV_ID IN (1,2)");
+      println("No soy yo, eres tu?: "+dataframes("U").count());
 
       dataframes("G")= dataframes("G").filter((dataframes("G")("DESDE_DT").geq(lit("2017-07-01"))
         && (dataframes("G")("DESDE_DT").leq(lit("2017-07-31"))))
@@ -122,26 +121,22 @@ object TransformacionesLocal extends Common {
         && (dataframes("M")("HASTA_DT").geq(lit("2017-07-01"))
         || dataframes("M")("HASTA_DT").isNull))).drop("DESDE_DT","HASTA_DT")
 
-      dataframes("T").filter(col("UFUGA_ID").eqNullSafe(lit("1"))).orderBy(col("UFUGA_ID").asc,col("UFTRG_ID").asc).show(5)
-
       dataframes("T")= dataframes("T").filter((dataframes("T")("DESDE_DT").geq(lit("2017-07-01"))
         && (dataframes("T")("DESDE_DT").leq(lit("2017-07-31"))))
         || (dataframes("T")("DESDE_DT").leq(lit("2017-07-01"))
         && (dataframes("T")("HASTA_DT").geq(lit("2017-07-01"))|| dataframes("T")("HASTA_DT").isNull)))
-      dataframes("T").filter(col("UFUGA_ID").eqNullSafe(lit("1"))).orderBy(col("UFUGA_ID").asc,col("UFTRG_ID").asc).show(5)
 
       dataframes("R") = dataframes("R").filter((col("DESDE_DT").geq(lit("2017-07-01"))
-        && (col("DESDE_DT").leq(lit("2017-07-31")))
-        || (col("DESDE_DT").leq(lit("2017-07-01")))
-        && (col("HASTA_DT").geq(lit("2017-07-01")))
-        || col("HASTA_DT").isNull))
+        && (col("DESDE_DT").leq(lit("2017-07-31"))))
+        || (col("DESDE_DT").leq(lit("2017-07-01"))
+        && (col("HASTA_DT").geq(lit("2017-07-01"))
+        || col("HASTA_DT").isNull)))
 
 
 }
     def joins():DataFrame={
       dataframes("F")=dataframes("F").as("F").join(dataframes("V").as("V"),col("F.UNFAC_ID")===col("V.PROVE_ID"),"right")
-      //dataframes("F").show(10)
-      dataframes("F").filter(col("UFUGA_ID").isNotNull).orderBy(col("UFUGA_ID").asc).show(2);
+
       val innerjoin = dataframes("U").as("U").join(dataframes("UF").as("UF"),col("U.UAACT_ID") === col("UF.UAACT_ID"), "inner").selectExpr("UF.PROVE_ID","UF.UNGES_ID","U.ACTIV_ID","UF.UGACT_ID","U.UNADM_ID","UF.UNGES_ID","UF.UFTRG_ID","UF.DESDE_DT","UF.HASTA_DT","UF.POBIN_QT","UF.POBLA_QT","UF.UFTRG_ID")
       val innerGM =   innerjoin.join(dataframes("M").as("M"),col("UF.UGACT_ID") === col("M.UGACT_ID"), "inner").drop("M.UGACT_ID")
       val joinML =  innerGM.join(dataframes("L").as("L"),col("M.ELMUN_ID") ===col("L.ELMUN_ID"), "inner").drop("M.ELMUN_ID")
@@ -163,15 +158,14 @@ object TransformacionesLocal extends Common {
 
       joinV2V
     }
-
     from()
     val dfJoin=joins()
     val filtT = dfJoin.filter(col("T.DESDE_DT").leq(col("UF.DESDE_DT"))
-      && (col("T.HASTA_DT").geq(col("UF.HASTA_DT")))
-      || col("T.HASTA_DT").isNull)
+      && (col("T.HASTA_DT").geq(col("UF.HASTA_DT"))
+      || col("T.HASTA_DT").isNull))
       .filter((col("S2.DESDE_DT").leq(col("UF.DESDE_DT"))
-      && (col("S2.HASTA_DT").geq(col("UF.HASTA_DT")))
-      || col("S2.HASTA_DT").isNull)).selectExpr(
+      && (col("S2.HASTA_DT").geq(col("UF.HASTA_DT"))
+      || col("S2.HASTA_DT").isNull))).selectExpr(
       "UF.DESDE_DT", "U.UNADM_ID",
       "U.ACTIV_ID",
       "UF.UNGES_ID",
@@ -202,8 +196,9 @@ object TransformacionesLocal extends Common {
       "PORCENTAJE_QT",
       "UTE_ID",
       "PORCENTAJE_UTE_QT",
-      "OP.MEDIOSPP_SN").sum("POBDC_QT","POBGC_QT").orderBy(col("UNADM_ID").asc).show(20)
-       //filtT.coalesce(1).write.options(Map("delimiter"->";", "emptyValue"->"NULL","header"->"true")).csv("data3.csv")
+      "OP.MEDIOSPP_SN").sum("POBDC_QT","POBGC_QT").orderBy(col("UNADM_ID").asc,col("U.ACTIV_ID").asc,col("UF.UNGES_ID").asc,col("L.ELMUN_ID").asc)
+    //filtT.write.format("com.databricks.spark.csv").save("myFile.csv");
+    filtT.coalesce(1).write.options(Map("delimiter"->";", "emptyValue"->"NULL","header"->"true")).csv("data9.csv")
 
 
 
