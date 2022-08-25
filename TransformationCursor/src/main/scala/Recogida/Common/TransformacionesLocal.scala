@@ -83,15 +83,12 @@ object TransformacionesLocal extends Common {
 
       }
       filtrosF()
-      val TF =  dataframes("TPL").filter((dataframes("TPL")("DESDE_DT")
-        .between("2017-07-01","2017-07-31")) || (dataframes("TPL")("DESDE_DT")
-        .leq(lit ("2017-07-01")) && (dataframes("TPL")("HASTA_DT").geq(lit("2017-07-01")) || dataframes("TPL")("HASTA_DT")
-        .isNull))).toDF.selectExpr("TPGFA_ID","ELMUN_ID")
+      val TF =  dataframes("TPL").where("DESDE_DT BETWEEN cast ('"+date+"' as date )  AND cast ('2017-07-31' as date ) OR (DESDE_DT <= cast ('"+date+"' as date ) AND (HASTA_DT >= cast ('"+date+"' as date )  OR HASTA_DT IS NULL))").toDF.selectExpr("TPGFA_ID","ELMUN_ID")
       val jointf= TF.as("TF").join(dataframes("R").as("R"),col("TF.ELMUN_ID") === col("R.ELMUN_ID"), "right").selectExpr("R.ELMUN_ID","R.TPREC_ID","R.MUNTR_ID","TF.TPGFA_ID")
       //Revisar coalesce
       val UFjoin =  dataframes("F").as("F").join(dataframes("G").as("G"),col("F.UGACT_ID") === col("G.UGACT_ID"), "left")
-        .join(dataframes("E").as("E"),col("F.DESDE_DT") <= col("E.HASTA_DT") &&
-        when(col("F.HASTA_DT").isNotNull,col("F.HASTA_DT")).otherwise(col("E.DESDE_DT")) >= col("E.DESDE_DT"),"left")
+        .join(dataframes("E").as("E"),col("F.DESDE_DT").leq(col("E.HASTA_DT")) &&
+        when(col("F.HASTA_DT").isNotNull,col("F.HASTA_DT")).otherwise(col("E.DESDE_DT")).geq(col("E.DESDE_DT")),"left")
         .join(dataframes("V2").as("V2"),col("F.UNFAC_ID") === col("V2.PROVE_ID"), "right" ).selectExpr("E.DESDE_DT","E.HASTA_DT","E.VERSI_ID","E.POBIN_QT","E.POBLA_QT","V2.PROVE_ID","V2.PROVE_NM","G.UAACT_ID","E.UFTRG_ID","F.UFUGA_ID","F.UGACT_ID","F.UNFAC_ID","G.UNGES_ID")
 
 
@@ -101,42 +98,40 @@ object TransformacionesLocal extends Common {
     }
     def filtrosF():Unit={
       dataframes("E")=
-        dataframes("E").where("DESDE_DT between cast('"+"2017-07-01"+"' as date) and cast('"+"2017-07-31"+"' as date)")
+        dataframes("E").where("DESDE_DT between cast('"+date+"' as date) and cast('"+date+"' as date)")
       val max=dataframes("E").as("E").join(dataframes("E").as("P2"),col("E.UFTRG_ID")===col("P2.UFTRG_ID")&&col("P2.DESDE_DT")===col("E.DESDE_DT")).selectExpr("MAX(P2.VERSI_ID)").take(1).apply(0).getString(0).toInt
-      dataframes("E")=dataframes("E").as("E").where(col("E.VERSI_ID")===max).drop("P2.UFTRG_ID","P2.DESDE_DT")
+      //dataframes("E")=dataframes("E").as("E").where(col("E.VERSI_ID")===max).drop("P2.UFTRG_ID","P2.DESDE_DT")
+      dataframes("E")= dataframes("E").withColumn("VERSI_ID",(col("VERSI_ID")===max).cast("Integer"))
       dataframes("U")=dataframes("U").where("ACTIV_ID IN (1,2)");
-      dataframes("G")= dataframes("G").filter((dataframes("G")("DESDE_DT").geq(lit("2017-07-01"))
+
+      dataframes("G")= dataframes("G").filter((dataframes("G")("DESDE_DT").geq(lit(date))
         && (dataframes("G")("DESDE_DT").leq(lit("2017-07-31"))))
-        || (dataframes("G")("DESDE_DT").leq(lit("2017-07-01"))
-        && (dataframes("G")("HASTA_DT").geq(lit("2017-07-01"))|| dataframes("G")("HASTA_DT").isNull))).drop("DESDE_DT","HASTA_DT")
+        || (dataframes("G")("DESDE_DT").leq(lit(date))
+        && (dataframes("G")("HASTA_DT").geq(lit(date))|| dataframes("G")("HASTA_DT").isNull))).drop("DESDE_DT","HASTA_DT")
 
 
-      dataframes("M")= dataframes("M").filter((dataframes("M")("DESDE_DT").geq(lit("2017-07-01"))
+      dataframes("M")= dataframes("M").filter((dataframes("M")("DESDE_DT").geq(lit(date))
         && (dataframes("M")("DESDE_DT").leq(lit("2017-07-31"))))
-        || (dataframes("M")("DESDE_DT").leq(lit("2017-07-01"))
-        && (dataframes("M")("HASTA_DT").geq(lit("2017-07-01"))
+        || (dataframes("M")("DESDE_DT").leq(lit(date))
+        && (dataframes("M")("HASTA_DT").geq(lit(date))
         || dataframes("M")("HASTA_DT").isNull))).drop("DESDE_DT","HASTA_DT")
 
-      dataframes("T").filter(col("UFUGA_ID").eqNullSafe(lit("1"))).orderBy(col("UFUGA_ID").asc,col("UFTRG_ID").asc).show(5)
-
-      dataframes("T")= dataframes("T").filter((dataframes("T")("DESDE_DT").geq(lit("2017-07-01"))
+      dataframes("T")= dataframes("T").filter((dataframes("T")("DESDE_DT").geq(lit(date))
         && (dataframes("T")("DESDE_DT").leq(lit("2017-07-31"))))
-        || (dataframes("T")("DESDE_DT").leq(lit("2017-07-01"))
-        && (dataframes("T")("HASTA_DT").geq(lit("2017-07-01"))|| dataframes("T")("HASTA_DT").isNull)))
-      dataframes("T").filter(col("UFUGA_ID").eqNullSafe(lit("1"))).orderBy(col("UFUGA_ID").asc,col("UFTRG_ID").asc).show(5)
+        || (dataframes("T")("DESDE_DT").leq(lit(date))
+        && (dataframes("T")("HASTA_DT").geq(lit(date))|| dataframes("T")("HASTA_DT").isNull)))
 
-      dataframes("R") = dataframes("R").filter((col("DESDE_DT").geq(lit("2017-07-01"))
-        && (col("DESDE_DT").leq(lit("2017-07-31")))
-        || (col("DESDE_DT").leq(lit("2017-07-01")))
-        && (col("HASTA_DT").geq(lit("2017-07-01")))
-        || col("HASTA_DT").isNull))
+      dataframes("R") = dataframes("R").filter((col("DESDE_DT").geq(lit(date))
+        && (col("DESDE_DT").leq(lit("2017-07-31"))))
+        || (col("DESDE_DT").leq(lit(date))
+        && (col("HASTA_DT").geq(lit(date))
+        || col("HASTA_DT").isNull)))
 
 
 }
     def joins():DataFrame={
       dataframes("F")=dataframes("F").as("F").join(dataframes("V").as("V"),col("F.UNFAC_ID")===col("V.PROVE_ID"),"right")
-      //dataframes("F").show(10)
-      dataframes("F").filter(col("UFUGA_ID").isNotNull).orderBy(col("UFUGA_ID").asc).show(2);
+
       val innerjoin = dataframes("U").as("U").join(dataframes("UF").as("UF"),col("U.UAACT_ID") === col("UF.UAACT_ID"), "inner").selectExpr("UF.PROVE_ID","UF.UNGES_ID","U.ACTIV_ID","UF.UGACT_ID","U.UNADM_ID","UF.UNGES_ID","UF.UFTRG_ID","UF.DESDE_DT","UF.HASTA_DT","UF.POBIN_QT","UF.POBLA_QT","UF.UFTRG_ID")
       val innerGM =   innerjoin.join(dataframes("M").as("M"),col("UF.UGACT_ID") === col("M.UGACT_ID"), "inner").drop("M.UGACT_ID")
       val joinML =  innerGM.join(dataframes("L").as("L"),col("M.ELMUN_ID") ===col("L.ELMUN_ID"), "inner").drop("M.ELMUN_ID")
@@ -153,20 +148,19 @@ object TransformacionesLocal extends Common {
       val joinSL = joinUA.join(dataframes("S").as("S2"),col("S2.ELMUN_ID") === col("L.ELMUN_ID"),"inner").drop("S2.ELMUN_ID").selectExpr("UF.UNGES_ID","UF.PROVE_ID","U.ACTIV_ID","S2.DESDE_DT","P2.DESDE_DT","T.DESDE_DT","S2.ELMUN_ID","L.ELMUN_ID","S2.HASTA_DT","F.HASTA_DT","T.HASTA_DT","V.PROVE_ID","V.PROVE_NM","S2.TPENT_ID","TF.TPGFA_ID","R.TPREC_ID","P2.UFUGA_ID","F.UFUGA_ID","UF.UGACT_ID","U.UNADM_ID","F.UNFAC_ID","UF.DESDE_DT","UF.HASTA_DT","UF.POBIN_QT","UF.POBLA_QT","UF.UFTRG_ID")
       val joinTPR = joinSL.join(dataframes("TP").as("TP"),col("TP.TPREC_ID") === col("R.TPREC_ID"),"inner").drop("TP.TPREC_ID")
       val joinUF2P =  joinTPR.join(dataframes("UF2"),col("UF2.UFUGA_ID") === col("P2.UFUGA_ID")).drop("P2.UFUGA_ID")
-      val joinUF =  joinUF2P.where(col("F.UFUGA_ID") === col("UF2.UFUGA_ID")).drop("F.UFUGA_ID","UF2.UFUGA_ID").selectExpr("POBDC_QT","U.ACTIV_ID","UF.PROVE_ID","S2.DESDE_DT","P2.DESDE_DT","T.DESDE_DT","S2.ELMUN_ID","L.ELMUN_ID","S2.HASTA_DT","F.HASTA_DT","T.HASTA_DT","OP.MEDIOSPP_SN","OP.OPERADOR_ID","OP.PORCENTAJE_QT","OP.PORCENTAJE_UTE_QT","TP.PROCE_ID","V.PROVE_NM","S2.TPENT_ID","TF.TPGFA_ID","R.TPREC_ID","F.UFUGA_ID","UF2.UGACT_ID","U.UNADM_ID","F.UNFAC_ID","UF.UNGES_ID","OP.UTE_ID","UF.DESDE_DT","UF.HASTA_DT","UF.POBIN_QT","UF.POBLA_QT","UF.UFTRG_ID")
+      val joinUF =  joinUF2P.where(col("UF.UGACT_ID") === col("UF2.UGACT_ID")).drop("F.UFUGA_ID","UF2.UFUGA_ID").selectExpr("POBDC_QT","U.ACTIV_ID","UF.PROVE_ID","S2.DESDE_DT","P2.DESDE_DT","T.DESDE_DT","S2.ELMUN_ID","L.ELMUN_ID","S2.HASTA_DT","F.HASTA_DT","T.HASTA_DT","OP.MEDIOSPP_SN","OP.OPERADOR_ID","OP.PORCENTAJE_QT","OP.PORCENTAJE_UTE_QT","TP.PROCE_ID","V.PROVE_NM","S2.TPENT_ID","TF.TPGFA_ID","R.TPREC_ID","F.UFUGA_ID","UF2.UGACT_ID","U.UNADM_ID","F.UNFAC_ID","UF.UNGES_ID","OP.UTE_ID","UF.DESDE_DT","UF.HASTA_DT","UF.POBIN_QT","UF.POBLA_QT","UF.UFTRG_ID")
       val joinV2V = joinUF.where(col("UF.PROVE_ID") === col("V.PROVE_ID")).drop("UF.PROVE_ID","V.PROVE_ID")
 
       joinV2V
     }
-
     from()
     val dfJoin=joins()
     val filtT = dfJoin.filter(col("T.DESDE_DT").leq(col("UF.DESDE_DT"))
-      && (col("T.HASTA_DT").geq(col("UF.HASTA_DT")))
-      || col("T.HASTA_DT").isNull)
+      && (col("T.HASTA_DT").geq(col("UF.HASTA_DT"))
+      || col("T.HASTA_DT").isNull))
       .filter((col("S2.DESDE_DT").leq(col("UF.DESDE_DT"))
-      && (col("S2.HASTA_DT").geq(col("UF.HASTA_DT")))
-      || col("S2.HASTA_DT").isNull)).selectExpr(
+      && (col("S2.HASTA_DT").geq(col("UF.HASTA_DT"))
+      || col("S2.HASTA_DT").isNull))).selectExpr(
       "UF.DESDE_DT", "U.UNADM_ID",
       "U.ACTIV_ID",
       "UF.UNGES_ID",
@@ -197,18 +191,28 @@ object TransformacionesLocal extends Common {
       "PORCENTAJE_QT",
       "UTE_ID",
       "PORCENTAJE_UTE_QT",
-      "OP.MEDIOSPP_SN").sum("POBDC_QT","POBGC_QT").orderBy(col("UNADM_ID").asc).count()
-    println(filtT)
-
-
-
-    //.groupBy(when(col("OP.UTE_ID").isNull,0).otherwise(col("OP.UTE_ID"))).agg(functions.sum("E.POBIN_QT" ), functions.sum ("E.POBLA_QT"))
-    /*  .groupBy("E.DESDE_DT" , "U.UNADM_ID" , "U.ACTIV_ID", "UF.UNGES_ID" , "L.ELMUN_ID" , "F.UNFAC_ID", "R.TPREC_ID" ,
-    "S2.TPENT_ID" , "TF.TPGFA_ID" , "TP.PROCE_ID", "E.POBIN_QT", "E.POBLA_QT" , "OPERADOR_ID_OU", "OPERADOR_ID",
-      "V.PROVE_NM","POBDC_QT","PORCENTAJE_QT", "PORCENTAJE_UTE_QT","OP.MEDIOSPP_SN" ).agg(functions.sum("E.POBIN_QT" ), functions.sum ("E.POBLA_QT"))
-*/
-(5)
-
+      "OP.MEDIOSPP_SN").sum("POBDC_QT","POBGC_QT").select(
+      "UF.DESDE_DT",
+      "U.UNADM_ID",
+      "U.ACTIV_ID",
+      "UF.UNGES_ID",
+      "L.ELMUN_ID",
+      "F.UNFAC_ID",
+      "R.TPREC_ID",
+      "S2.TPENT_ID",
+      "TPGFA_ID",
+      "PROCE_ID",
+      "V.PROVE_NM",
+      "OPERADOR_ID",
+      "sum(POBDC_QT)",
+      "sum(POBGC_QT)",
+      "PORCENTAJE_QT",
+      "UTE_ID",
+      "PORCENTAJE_UTE_QT",
+      "OP.MEDIOSPP_SN"
+    ).orderBy(col("UNADM_ID").asc,col("U.ACTIV_ID").asc,col("UF.UNGES_ID").asc,col("L.ELMUN_ID").asc)
+    //filtT.write.format("com.databricks.spark.csv").save("myFile.csv");
+    filtT.coalesce(1).write.options(Map("delimiter"->";", "emptyValue"->"NULL","header"->"true")).csv(date)
 
     print("fin")
 }
